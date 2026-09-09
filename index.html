@@ -8,15 +8,18 @@
     <!-- Google Fonts: Vazirmatn -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome Pro/Free Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- PDF.js for reading uploaded school documents directly in browser -->
+    <!-- Three.js CDN for Interactive 3D Background & Visual Depth -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- PDF.js for Client-Side Document Parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <script>
@@ -24,21 +27,39 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            50: '#fdf4f8',
-                            100: '#fce7f3',
-                            200: '#fbcfe8',
-                            300: '#f9a8d4',
-                            400: '#f472b6',
-                            500: '#ec4899',
-                            600: '#db2777',
-                            700: '#be185d',
-                            800: '#9d174d',
-                            900: '#831843'
+                        rosebrand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            800: '#9f1239',
+                            900: '#881337',
+                        },
+                        violetbrand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
                         }
                     },
                     fontFamily: {
-                        sans: ['Vazirmatn', 'sans-serif'],
+                        sans: ['Vazirmatn', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 20px 40px -15px rgba(225, 29, 72, 0.12), 0 0 25px rgba(255, 255, 255, 0.6) inset',
+                        'card-3d': '0 12px 32px -8px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(225, 29, 72, 0.06)',
+                        'btn-3d': '0 6px 20px -3px rgba(225, 29, 72, 0.35), 0 -2px 0 rgba(0, 0, 0, 0.15) inset',
+                        'inner-glow': 'inset 0 1px 2px rgba(255, 255, 255, 0.8), inset 0 -1px 2px rgba(0, 0, 0, 0.05)',
                     }
                 }
             }
@@ -48,458 +69,587 @@
     <style>
         body {
             font-family: 'Vazirmatn', sans-serif;
-            background-color: #f1f5f9;
+            background-color: #0b0f19;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
         }
-        .chat-bubble-ai {
-            border-bottom-right-radius: 1.25rem;
-            border-bottom-left-radius: 1.25rem;
-            border-top-left-radius: 1.25rem;
-            border-top-right-radius: 0.25rem;
+
+        /* 3D Glass Layer effects */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
         }
-        .chat-bubble-user {
-            border-bottom-right-radius: 1.25rem;
-            border-bottom-left-radius: 1.25rem;
-            border-top-right-radius: 1.25rem;
-            border-top-left-radius: 0.25rem;
+
+        .glass-dark-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
+        .bubble-ai {
+            border-radius: 1.5rem 1.5rem 1.5rem 0.35rem;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .bubble-user {
+            border-radius: 1.5rem 1.5rem 0.35rem 1.5rem;
+            box-shadow: 0 6px 20px -3px rgba(225, 29, 72, 0.28);
+        }
+
+        .btn-depth {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-depth:hover {
+            transform: translateY(-2px);
+        }
+        .btn-depth:active {
+            transform: translateY(1px);
+        }
+
+        .ambient-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(244, 63, 94, 0.15), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.18), transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(251, 113, 133, 0.08), transparent 55%);
+        }
+
+        /* Animated typing dots */
         .typing-dot {
-            animation: bounce 1.4s infinite ease-in-out both;
+            animation: dotBounce 1.4s infinite ease-in-out both;
         }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+        @keyframes dotBounce {
+            0%, 80%, 100% { transform: scale(0.3); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
         }
+
+        /* Custom Modern Scrollbar */
         ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.02);
+            background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
+            background: rgba(203, 213, 225, 0.8);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 1);
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-0 md:p-4 bg-slate-100 antialiased">
+<body class="min-h-screen text-slate-800 flex items-center justify-center p-0 md:p-5 relative selection:bg-rosebrand-500 selection:text-white">
 
-<div class="w-full max-w-lg md:max-w-2xl bg-white md:rounded-3xl shadow-2xl h-[100dvh] md:h-[92vh] flex flex-col overflow-hidden border border-slate-200">
-    
-    <!-- Top Header -->
-    <header class="bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 text-white p-4 shadow-md flex items-center justify-between z-10 shrink-0">
-        <div class="flex items-center space-x-3 space-x-reverse">
-            <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-xl shadow-inner border border-white/30">
-                <i class="fa-solid fa-school"></i>
+    <!-- Interactive Three.js Canvas Container -->
+    <div id="threejs-canvas-container" class="fixed inset-0 z-0 pointer-events-auto opacity-70"></div>
+    <div class="ambient-mesh"></div>
+
+    <!-- MAIN APP WRAPPER WITH 3D ELEVATION -->
+    <div class="w-full max-w-lg md:max-w-2xl h-[100dvh] md:h-[94vh] glass-panel md:rounded-[2.5rem] shadow-glass flex flex-col overflow-hidden relative z-10 border border-white/80 transition-all duration-300">
+        
+        <!-- Floating Glassmorphic Header -->
+        <header class="relative px-5 py-3.5 bg-gradient-to-r from-rosebrand-600/95 via-rose-500/90 to-violetbrand-600/95 text-white backdrop-blur-xl border-b border-white/20 shadow-md flex items-center justify-between shrink-0 select-none z-20">
+            <!-- Background Light Flare -->
+            <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+
+            <div class="flex items-center gap-3 relative z-10">
+                <!-- 3D Floating School Crest -->
+                <div class="relative group cursor-pointer">
+                    <div class="w-12 h-12 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center text-xl shadow-inner border border-white/40 transform group-hover:rotate-6 transition-transform duration-300">
+                        <i class="fa-solid fa-graduation-cap text-amber-300 drop-shadow-md"></i>
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 border-2 border-white rounded-full animate-pulse shadow-sm" title="سامانه برخط"></span>
+                </div>
+
+                <div>
+                    <h1 class="font-extrabold text-sm sm:text-base leading-tight tracking-tight text-white drop-shadow-xs flex items-center gap-2">
+                        پیش‌دبستانی و دبستان دخترانه عارفان توس
+                    </h1>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-semibold text-rose-50 border border-white/25">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            پاسخگوی هوشمند اولیا
+                        </span>
+                        <span class="text-[10px] text-rose-100 hidden sm:inline-block">نسخه تعاملی پاییز ۱۴۰۴</span>
+                    </div>
+                </div>
             </div>
-            <div>
-                <h1 class="font-bold text-sm sm:text-base md:text-lg leading-tight flex items-center gap-1.5">
-                    پیش‌دبستانی و دبستان دخترانه عارفان توس
-                </h1>
-                <p class="text-xs text-pink-100 flex items-center gap-1 mt-0.5">
-                    <span id="liveStatusPulse" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="liveStatusText">سامانه پاسخگوی هوشمند اولیا</span>
-                </p>
-            </div>
-        </div>
 
-        <div class="flex items-center gap-2">
-            <!-- Manual Refresh Button -->
-            <button onclick="fetchDocsFromCloud(true)" title="به‌روزرسانی دستی اطلاعات" class="p-2 text-white/80 hover:text-white transition active:scale-95">
-                <i id="syncIcon" class="fa-solid fa-arrows-rotate text-sm"></i>
-            </button>
-            <!-- Admin Login Button -->
-            <button onclick="handleAdminButtonClick()" id="adminHeaderBtn" class="bg-white/20 hover:bg-white/30 active:scale-95 transition-all text-xs font-semibold py-2 px-3 rounded-xl flex items-center gap-1.5 backdrop-blur-sm border border-white/20">
-                <i class="fa-solid fa-lock" id="adminLockIcon"></i>
-                <span id="adminBtnLabel">ورود مدیر</span>
-            </button>
-        </div>
-    </header>
-
-    <div class="bg-pink-50/80 border-b border-pink-100 px-4 py-2 text-xs text-pink-900 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-2 truncate">
-            <i class="fa-solid fa-cloud text-pink-600" id="cloudStateIcon"></i>
-            <span class="truncate font-medium" id="cloudStatusText">در حال برقراری ارتباط...</span>
-        </div>
-        <div class="flex items-center gap-1.5 shrink-0">
-            <span id="docCountBadge" class="bg-pink-200 text-pink-900 px-2.5 py-0.5 rounded-md font-bold text-[11px]">در حال بارگذاری...</span>
-        </div>
-    </div>
-
-    <!-- MAIN VIEWPORT (Chat View & Admin View) -->
-    <main class="flex-1 overflow-hidden relative flex flex-col bg-slate-50">
-
-        <div id="chatView" class="flex-1 flex flex-col h-full">
-            
-            <!-- Messages Container -->
-            <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Header Quick Actions -->
+            <div class="flex items-center gap-2 relative z-10">
+                <!-- Sync Button with 3D Pop -->
+                <button onclick="fetchDocsFromCloud(true)" title="به‌روزرسانی لحظه‌ای اطلاعات" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center transition border border-white/20 btn-depth">
+                    <i id="syncIcon" class="fa-solid fa-arrows-rotate text-xs"></i>
+                </button>
                 
-                <!-- Initial Welcome Message -->
-                <div class="flex items-start gap-2.5">
-                    <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pink-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm text-sm">
-                        <i class="fa-solid fa-comments"></i>
-                    </div>
-                    <div class="max-w-[85%] chat-bubble-ai bg-white p-3.5 shadow-sm border border-slate-100 text-slate-800 text-sm leading-relaxed">
-                        <p class="font-bold text-pink-600 text-xs mb-1">دستیار امور اولیا و نوآموزان 🌸</p>
-                        سلام و درود خدمت اولیای ارجمند و گرامی دبستان و پیش‌دبستانی دخترانه عارفان توس.<br>
-                        تمامی برنامه‌های کلاسی، بخشنامه‌ها، ساعات ورود و خروج و مصوبات آموزشگاه مستقیماً توسط مدیریت محترم در این سامانه ثبت و به‌روزرسانی می‌شود.<br><br>
-                        هر سوالی درباره دختر دلبندتان و امور مدرسه دارید بفرمایید تا فوراً بر اساس آخرین مصوبات پاسخ دهم.
-                    </div>
-                </div>
-
-                <!-- Suggested Quick Prompts -->
-                <div id="quickQuestionsContainer" class="pt-2">
-                    <p class="text-xs text-slate-500 font-medium mb-2 pr-1 flex items-center gap-1">
-                        <i class="fa-regular fa-lightbulb text-amber-500"></i>
-                        پرسش‌های متداول اولیا:
-                    </p>
-                    <div class="flex flex-wrap gap-1.5" id="quickQuestionsChips">
-                        <button onclick="askQuickPrompt('ساعت شروع، صبحگاه و پایان کلاس‌ها در پیش‌دبستانی و دبستان چگونه است؟')" class="text-xs bg-white hover:bg-pink-50 hover:text-pink-700 text-slate-700 py-1.5 px-3 rounded-full border border-slate-200 transition shadow-2xs text-right">
-                            ⏰ ساعت ورود و خروج کلاس‌ها
-                        </button>
-                        <button onclick="askQuickPrompt('قوانین مربوط به غیبت دانش‌آموز و لباس فرم چیست؟')" class="text-xs bg-white hover:bg-pink-50 hover:text-pink-700 text-slate-700 py-1.5 px-3 rounded-full border border-slate-200 transition shadow-2xs text-right">
-                            👗 لباس فرم و قوانین غیبت
-                        </button>
-                        <button onclick="askQuickPrompt('روزها و ساعات ملاقات اولیا با آموزگاران چگونه است؟')" class="text-xs bg-white hover:bg-pink-50 hover:text-pink-700 text-slate-700 py-1.5 px-3 rounded-full border border-slate-200 transition shadow-2xs text-right">
-                            👩‍🏫 روزهای ملاقات با آموزگاران
-                        </button>
-                    </div>
-                </div>
-
+                <!-- Admin Gateway Button -->
+                <button onclick="handleAdminButtonClick()" id="adminHeaderBtn" class="bg-white/20 hover:bg-white/35 active:scale-95 transition-all text-xs font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 backdrop-blur-md border border-white/30 shadow-btn-3d btn-depth">
+                    <i class="fa-solid fa-shield-halved text-amber-300" id="adminLockIcon"></i>
+                    <span id="adminBtnLabel">ورود مدیر</span>
+                </button>
             </div>
+        </header>
 
-            <!-- Typing indicator -->
-            <div id="typingIndicator" class="hidden px-6 py-2">
-                <div class="flex items-center gap-2 text-xs text-pink-600 bg-pink-50/90 w-fit px-3 py-1.5 rounded-full border border-pink-100">
-                    <span class="font-medium">در حال بررسی مصوبات مدرسه و نگارش پاسخ</span>
-                    <div class="flex gap-1 items-center">
-                        <div class="w-1.5 h-1.5 bg-pink-500 rounded-full typing-dot"></div>
-                        <div class="w-1.5 h-1.5 bg-pink-500 rounded-full typing-dot"></div>
-                        <div class="w-1.5 h-1.5 bg-pink-500 rounded-full typing-dot"></div>
-                    </div>
-                </div>
+        <!-- Subheader Cloud Telemetry Bar -->
+        <div class="bg-gradient-to-r from-rosebrand-50/90 via-pink-50/80 to-violetbrand-50/90 border-b border-rosebrand-100/60 px-5 py-2 text-[11px] text-slate-600 flex items-center justify-between shrink-0 backdrop-blur-md">
+            <div class="flex items-center gap-2 truncate">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rosebrand-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-rosebrand-500"></span>
+                </span>
+                <span class="truncate font-medium text-slate-700" id="cloudStatusText">اتصال ابری در حال آماده‌سازی...</span>
             </div>
-
-            <div class="p-3 md:p-4 bg-white border-t border-slate-200 shrink-0">
-                <form id="chatForm" onsubmit="handleChatSubmit(event)" class="flex items-end gap-2">
-                    <div class="flex-1 relative bg-slate-100 rounded-2xl border border-slate-200 focus-within:border-pink-500 focus-within:bg-white transition">
-                        <textarea 
-                            id="userInput" 
-                            rows="1" 
-                            placeholder="پرسش خود را بنویسید..." 
-                            class="w-full bg-transparent px-4 py-3 text-sm focus:outline-none resize-none max-h-32 text-slate-800"
-                            onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); handleChatSubmit(event); }"
-                            oninput="autoResizeTextarea(this)"></textarea>
-                    </div>
-                    <button 
-                        type="submit" 
-                        id="sendBtn"
-                        class="h-11 w-11 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white flex items-center justify-center shrink-0 shadow-md shadow-pink-600/20 active:scale-95 transition disabled:opacity-50">
-                        <i class="fa-solid fa-paper-plane text-sm"></i>
-                    </button>
-                </form>
-                <div class="flex justify-between items-center mt-2 px-1 text-[11px] text-slate-400">
-                    <span>پاسخ‌ها مستقیماً بر مبنای آخرین مصوبات مدیریت مدرسه استخراج می‌شوند.</span>
-                    <button onclick="clearChatHistory()" class="hover:text-rose-500 transition">پاک کردن گفتگو</button>
-                </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span id="docCountBadge" class="bg-white/90 text-rosebrand-700 border border-rosebrand-200 px-3 py-0.5 rounded-full font-bold text-[11px] shadow-2xs">
+                    درحال بارگذاری...
+                </span>
             </div>
-
         </div>
 
-        <div id="adminView" class="hidden flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-            
-            <!-- Security Header Card -->
-            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-2xl border border-pink-200 shadow-xs flex items-start gap-3">
-                <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 text-lg">
-                    <i class="fa-solid fa-cloud-bolt"></i>
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between flex-wrap gap-2">
-                        <h2 class="font-bold text-slate-800 text-sm md:text-base">میز کار مدیر مدرسه (همگام‌سازی بلادرنگ همگانی)</h2>
-                        <div class="flex items-center gap-2">
-                            <button onclick="openChangePasswordModal()" class="text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 active:scale-95">
-                                <i class="fa-solid fa-key"></i>
-                                تغییر رمز عبور
-                            </button>
-                            <button onclick="logoutAdmin()" class="text-xs text-rose-600 hover:underline font-bold px-2 py-1">خروج از پنل</button>
+        <!-- MAIN VIEWPORT CONTAINER -->
+        <main class="flex-1 overflow-hidden relative flex flex-col bg-slate-50/60 backdrop-blur-md">
+
+            <!-- ================= VIEW 1: PARENTS CHAT VIEW ================= -->
+            <div id="chatView" class="flex-1 flex flex-col h-full">
+                
+                <!-- Messages Scrollable Surface -->
+                <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 md:p-5 space-y-4">
+                    
+                    <!-- 3D Welcome Hero Banner -->
+                    <div class="relative overflow-hidden rounded-3xl p-4 md:p-5 bg-gradient-to-br from-white via-rosebrand-50/40 to-violetbrand-50/50 border border-white shadow-card-3d">
+                        <div class="absolute -left-6 -bottom-6 w-24 h-24 bg-rosebrand-200/40 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="flex items-start gap-3.5 relative z-10">
+                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rosebrand-500 to-violetbrand-600 text-white flex items-center justify-center shrink-0 shadow-btn-3d text-lg">
+                                <i class="fa-solid fa-sparkles"></i>
+                            </div>
+                            <div class="space-y-1.5 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-rosebrand-600 text-xs sm:text-sm">دستیار هوشمند امور اولیا و نوآموزان 🌸</span>
+                                    <span class="text-[10px] bg-rosebrand-100 text-rosebrand-700 px-2 py-0.5 rounded-full font-semibold">پایگاه مصوبات</span>
+                                </div>
+                                <p>
+                                    سلام و احترام خدمت اولیای ارجمند و همراهان همیشگی دبستان و پیش‌دبستانی دخترانه عارفان توس.<br>
+                                    تمامی آیین‌نامه‌ها، برنامه کلاسی، بخشنامه‌های اداری و تقویم پرورشی توسط مدیریت در این سامانه بارگذاری شده است. پرسش خود را بفرمایید تا فوراً و با کمال افتخار پاسخگو باشم.
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                        هر فایلی که در این قسمت اضافه یا حذف فرمایید، در همان لحظه در دیتابیس مرکزی ثبت شده و برای تمامی اولیا در همان آدرس ثابت بدون نیاز به لینک جدید به‌روزرسانی می‌شود.
-                    </p>
-                </div>
-            </div>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-tower-broadcast text-purple-600"></i>
-                        وضعیت پایگاه داده ابری مدرسه
-                    </h3>
-                    <span id="dbConfigStatusBadge" class="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">بررسی وضعیت...</span>
-                </div>
-                <p class="text-xs text-slate-500 mb-3 leading-relaxed">
-                    آدرس دیتابیس فایربیس اختصاصی مدرسه که در کد ذخیره شده است:
-                </p>
-                <div class="flex gap-2">
-                    <input type="text" id="firebaseUrlInput" placeholder="https://your-school-db-default-rtdb.firebaseio.com" class="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 font-mono text-left bg-slate-50" dir="ltr">
-                    <button onclick="saveAdminFirebaseUrl()" class="py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shrink-0 shadow-sm active:scale-95">
-                        ذخیره و هماهنگ‌سازی
-                    </button>
-                </div>
-                <p class="text-[11px] text-slate-400 mt-2">
-                    نکته: با ذخیره این آدرس در متغیر بالای کد، برای همیشه نیازی به هیچ تنظیم مجددی نخواهد بود.
-                </p>
-            </div>
+                    <!-- Quick Prompt Chips with 3D Lift -->
+                    <div id="quickQuestionsContainer" class="pt-1">
+                        <div class="flex items-center justify-between mb-2.5 px-1">
+                            <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                                پرسش‌های متداول و دسترسی سریع اولیا:
+                            </p>
+                            <span class="text-[10px] text-slate-400">یک لمس برای پاسخ فوری</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="quickQuestionsChips">
+                            <button onclick="askQuickPrompt('ساعت شروع، صبحگاه و پایان کلاس‌ها در پیش‌دبستانی و دبستان چگونه است؟')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                                <div class="flex items-center gap-2.5 text-xs font-medium">
+                                    <span class="w-8 h-8 rounded-xl bg-rosebrand-100/80 text-rosebrand-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                        ⏰
+                                    </span>
+                                    <span>ساعت ورود، صبحگاه و خروج کلاس‌ها</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-rosebrand-500 group-hover:-translate-x-1 transition-all"></i>
+                            </button>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <h3 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-file-pdf text-rose-500"></i>
-                    بارگذاری فایل PDF جدید (بخشنامه، آیین‌نامه، تقویم اجرایی و برنامه معلمان)
-                </h3>
-                <div 
-                    id="dropZone" 
-                    onclick="document.getElementById('pdfFileInput').click()"
-                    class="border-2 border-dashed border-pink-300 hover:border-pink-500 rounded-2xl p-6 text-center cursor-pointer bg-pink-50/40 hover:bg-pink-50/70 transition flex flex-col items-center justify-center">
-                    <input type="file" id="pdfFileInput" accept=".pdf" class="hidden" onchange="handleAdminFileUpload(event)">
-                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-pink-600 text-xl mb-2">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <button onclick="askQuickPrompt('قوانین مربوط به غیبت دانش‌آموز و لباس فرم چیست؟')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                                <div class="flex items-center gap-2.5 text-xs font-medium">
+                                    <span class="w-8 h-8 rounded-xl bg-violetbrand-100/80 text-violetbrand-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                        👗
+                                    </span>
+                                    <span>لباس فرم مصوب و قوانین غیبت</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-violetbrand-500 group-hover:-translate-x-1 transition-all"></i>
+                            </button>
+
+                            <button onclick="askQuickPrompt('روزها و ساعات ملاقات اولیا با آموزگاران چگونه است؟')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                                <div class="flex items-center gap-2.5 text-xs font-medium">
+                                    <span class="w-8 h-8 rounded-xl bg-pink-100/80 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                        👩‍🏫
+                                    </span>
+                                    <span>روزها و ساعات ملاقات با آموزگاران</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-pink-500 group-hover:-translate-x-1 transition-all"></i>
+                            </button>
+
+                            <button onclick="askQuickPrompt('برنامه، عناوین و نحوه برگزاری کلاس‌های فوق‌برنامه و کارگاه‌های مهارتی چگونه است؟')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                                <div class="flex items-center gap-2.5 text-xs font-medium">
+                                    <span class="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                        🎨
+                                    </span>
+                                    <span>کلاس‌های فوق‌برنامه و کارگاه مهارتی</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-amber-500 group-hover:-translate-x-1 transition-all"></i>
+                            </button>
+                        </div>
                     </div>
-                    <p class="text-sm font-bold text-slate-700">برای بارگذاری فایل PDF اینجا کلیک کنید</p>
-                    <p class="text-xs text-slate-500 mt-1">متن فایل استخراج شده و بلافاصله در سرور سراسری ذخیره می‌شود</p>
-                    <div id="uploadSpinner" class="hidden mt-3 flex items-center gap-2 text-xs font-semibold text-pink-600">
-                        <i class="fa-solid fa-circle-notch fa-spin"></i>
-                        <span>در حال استخراج متن و انتشار در پایگاه مرکزی...</span>
+
+                </div>
+
+                <!-- Floating AI Typing Indicator -->
+                <div id="typingIndicator" class="hidden px-6 py-2.5">
+                    <div class="flex items-center gap-3 text-xs text-rosebrand-700 bg-white/95 w-fit px-4 py-2 rounded-2xl border border-rosebrand-200/80 shadow-card-3d backdrop-blur-lg">
+                        <span class="font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-compass-drafting text-rosebrand-500 animate-spin"></i>
+                            درحال تطبیق با مصوبات مدرسه و نگارش پاسخ...
+                        </span>
+                        <div class="flex gap-1 items-center">
+                            <div class="w-2 h-2 bg-rosebrand-500 rounded-full typing-dot"></div>
+                            <div class="w-2 h-2 bg-rosebrand-500 rounded-full typing-dot"></div>
+                            <div class="w-2 h-2 bg-rosebrand-500 rounded-full typing-dot"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <h3 class="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
-                    <i class="fa-solid fa-bullhorn text-indigo-500"></i>
-                    افزودن مستقیم اطلاعیه متنی فوری
-                </h3>
-                <p class="text-xs text-slate-500 mb-3">مثلاً تغییر برنامه اردوی فردا یا اعلام تعطیلی و تغییر ساعت جلسات:</p>
-                <div class="space-y-2">
-                    <input type="text" id="manualDocTitle" placeholder="عنوان اطلاعیه (مثال: تغییر ساعت اردوی ۲۵ آذر)" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500">
-                    <textarea id="manualDocContent" rows="3" placeholder="متن کامل اطلاعیه یا مصوبه را بنویسید..." class="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500"></textarea>
-                    <button onclick="saveAdminManualDocument()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm active:scale-95">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        انتشار فوری در سرور سراسری
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-5 rounded-2xl border border-purple-200/80 shadow-xs space-y-3">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-wand-magic-sparkles text-pink-600"></i>
-                        دستیار هوشمند مدیر مدرسه (قدرت‌گرفته از Gemini)
-                    </h3>
-                    <span class="text-[10px] bg-pink-100 text-pink-700 font-bold px-2 py-0.5 rounded-full border border-pink-200">Gemini 3 Flash</span>
-                </div>
-                <p class="text-xs text-slate-600 leading-relaxed">
-                    تبدیل بخشنامه‌های اداری به پیام‌های صمیمانه برای کانال شاد یا استخراج خودکار پرسش‌های متداول اولیا:
-                </p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                    <button type="button" onclick="generateAiAnnouncementFromDocs()" id="aiDraftBtn" class="py-2.5 px-3 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs active:scale-95">
-                        <i class="fa-solid fa-pen-nib"></i>
-                        نگارش پیام برای کانال اولیا
-                    </button>
-                    <button type="button" onclick="generateDynamicFaqQuestions()" id="aiFaqBtn" class="py-2.5 px-3 bg-white hover:bg-pink-50 text-pink-700 border border-pink-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs active:scale-95">
-                        <i class="fa-solid fa-lightbulb"></i>
-                        استخراج خودکار پرسش‌های متداول
-                    </button>
-                </div>
-                <!-- AI Output Box -->
-                <div id="aiOutputBox" class="hidden mt-3 p-3 bg-white rounded-xl border border-purple-100 text-xs space-y-2">
-                    <div class="flex items-center justify-between text-slate-500 text-[11px] pb-1 border-b border-slate-100">
-                        <span id="aiOutputTitle" class="font-bold text-purple-800">پیش‌نویس آماده:</span>
-                        <button onclick="copyAiOutputToManualDraft()" class="text-pink-600 hover:text-pink-700 font-bold transition flex items-center gap-1">
-                            <i class="fa-solid fa-copy"></i>
-                            انتقال به کادر انتشار
+                <!-- Bottom Glass Dock Input Bar -->
+                <div class="p-3 md:p-4 bg-white/80 border-t border-slate-200/70 backdrop-blur-xl shrink-0">
+                    <form id="chatForm" onsubmit="handleChatSubmit(event)" class="flex items-end gap-2.5">
+                        <div class="flex-1 relative bg-white rounded-2xl border border-slate-200/90 focus-within:border-rosebrand-500 focus-within:ring-4 focus-within:ring-rosebrand-500/10 transition-all shadow-inner-glow">
+                            <textarea 
+                                id="userInput" 
+                                rows="1" 
+                                placeholder="پرسش خود را درباره مدرسه یا نوآموزان بنویسید..." 
+                                class="w-full bg-transparent px-4 py-3 text-xs sm:text-sm focus:outline-none resize-none max-h-32 text-slate-800 placeholder:text-slate-400 font-medium"
+                                onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); handleChatSubmit(event); }"
+                                oninput="autoResizeTextarea(this)"></textarea>
+                        </div>
+                        <button 
+                            type="submit" 
+                            id="sendBtn"
+                            class="h-12 w-12 rounded-2xl bg-gradient-to-tr from-rosebrand-600 via-rose-500 to-violetbrand-600 hover:brightness-110 active:scale-95 text-white flex items-center justify-center shrink-0 shadow-btn-3d transition-all btn-depth disabled:opacity-40 disabled:pointer-events-none">
+                            <i class="fa-solid fa-paper-plane text-sm transform -rotate-12"></i>
+                        </button>
+                    </form>
+                    <div class="flex justify-between items-center mt-2 px-1 text-[11px] text-slate-400 font-medium">
+                        <span>پاسخ‌ها تماماً بر پایه آخرین مصوبات مدرسه استخراج می‌شوند.</span>
+                        <button onclick="clearChatHistory()" class="text-rosebrand-600 hover:text-rosebrand-800 transition flex items-center gap-1 font-semibold">
+                            <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                            پاکسازی گفتگو
                         </button>
                     </div>
-                    <div id="aiOutputText" class="text-slate-700 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto font-sans"></div>
                 </div>
+
             </div>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-folder-open text-purple-600"></i>
-                        بخشنامه‌ها و اسناد فعال در سرور مرکزی
-                    </h3>
-                    <span id="adminDocCounter" class="text-xs text-slate-400">۰ سند فعال</span>
-                </div>
+            <!-- ================= VIEW 2: PRINCIPAL ADMIN DASHBOARD ================= -->
+            <div id="adminView" class="hidden flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-gradient-to-b from-slate-50/80 to-rosebrand-50/20">
                 
-                <div id="adminDocumentsList" class="space-y-2.5">
-                    <!-- Dynamic rendering by JS -->
+                <!-- Admin 3D Hero Status Card -->
+                <div class="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-r from-violetbrand-900 via-slate-900 to-rosebrand-950 text-white shadow-2xl border border-white/20">
+                    <div class="absolute -top-12 -right-12 w-36 h-36 bg-rosebrand-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="flex items-start gap-4 relative z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-xl text-rosebrand-300 border border-white/20 shadow-inner">
+                            <i class="fa-solid fa-cloud-bolt"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <h2 class="font-extrabold text-sm sm:text-base text-white tracking-tight flex items-center gap-2">
+                                    میز کار مدیریت (همگام‌سازی ابری سراسری)
+                                </h2>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="openChangePasswordModal()" class="text-xs bg-white/15 hover:bg-white/25 active:scale-95 text-white px-3 py-1.5 rounded-xl font-bold transition border border-white/20 flex items-center gap-1 btn-depth">
+                                        <i class="fa-solid fa-key text-amber-300"></i>
+                                        تغییر رمز عبور
+                                    </button>
+                                    <button onclick="logoutAdmin()" class="text-xs text-rosebrand-300 hover:text-white font-bold px-2 py-1 transition">
+                                        خروج از پنل
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                                هر سندی که در این سامانه ثبت یا ویرایش فرمایید، بدون تغییر لینک و فوراً در دیتابیس مرکزی ذخیره شده و برای تمام اولیا به‌روزرسانی می‌شود.
+                            </p>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Live Cloud Telemetry Config Box -->
+                <div class="bg-white/90 rounded-3xl p-5 border border-white shadow-card-3d backdrop-blur-md">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-tower-broadcast text-violetbrand-600"></i>
+                            وضعیت اتصال پایگاه داده ابری مدرسه
+                        </h3>
+                        <span id="dbConfigStatusBadge" class="text-[10px] px-3 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            بررسی وضعیت...
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mb-3">
+                        آدرس دائمی دیتابیس متصل در کد برنامه:
+                    </p>
+                    <div class="flex gap-2">
+                        <input type="text" id="firebaseUrlInput" placeholder="https://your-school-db.firebasedatabase.app" class="flex-1 text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 font-mono text-left bg-slate-50/70" dir="ltr">
+                        <button onclick="saveAdminFirebaseUrl()" class="py-2.5 px-4 bg-violetbrand-600 hover:bg-violetbrand-700 active:scale-95 text-white rounded-2xl text-xs font-bold transition shrink-0 shadow-btn-3d btn-depth">
+                            ذخیره مجدد
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PDF Upload 3D Drag Zone -->
+                <div class="bg-white/90 rounded-3xl p-5 border border-white shadow-card-3d backdrop-blur-md">
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-rosebrand-600 text-base"></i>
+                        بارگذاری فایل PDF جدید (بخشنامه، تقویم اجرایی، برنامه هفتگی)
+                    </h3>
+                    <div 
+                        id="dropZone" 
+                        onclick="document.getElementById('pdfFileInput').click()"
+                        class="border-2 border-dashed border-rosebrand-300 hover:border-rosebrand-500 rounded-3xl p-6 text-center cursor-pointer bg-gradient-to-b from-rosebrand-50/30 to-white hover:from-rosebrand-50/60 transition-all flex flex-col items-center justify-center group btn-depth">
+                        <input type="file" id="pdfFileInput" accept=".pdf" class="hidden" onchange="handleAdminFileUpload(event)">
+                        
+                        <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-card-3d text-rosebrand-600 text-2xl mb-2.5 group-hover:scale-110 group-hover:-translate-y-1 transition-all">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <p class="text-xs sm:text-sm font-extrabold text-slate-800">برای انتخاب فایل PDF بخشنامه کلیک کنید</p>
+                        <p class="text-[11px] text-slate-500 mt-1">متن سند به صورت آنی استخراج شده و در سرور مرکزی فعال خواهد شد</p>
+                        
+                        <div id="uploadSpinner" class="hidden mt-3 flex items-center gap-2 text-xs font-bold text-rosebrand-600 bg-white px-3 py-1.5 rounded-full shadow-sm">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i>
+                            <span>در حال استخراج متون و ثبت در سرور ابری...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direct Text Announcement Box -->
+                <div class="bg-white/90 rounded-3xl p-5 border border-white shadow-card-3d backdrop-blur-md">
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-bullhorn text-indigo-500"></i>
+                        ثبت فوری اطلاعیه یا مصوبه جدید
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mb-3">برای تغییرات ناگهانی مثل ساعت اردو، شرایط لباس فرم یا ساعات امتحانات:</p>
+                    <div class="space-y-2.5">
+                        <input type="text" id="manualDocTitle" placeholder="عنوان مصوبه (مثال: تغییر ساعت اردوی ۲۵ آذر)" class="w-full text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 bg-slate-50/60">
+                        <textarea id="manualDocContent" rows="3" placeholder="متن کامل بخشنامه یا مصوبه آموزشی را بنویسید..." class="w-full text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 bg-slate-50/60 leading-relaxed"></textarea>
+                        <button onclick="saveAdminManualDocument()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-btn-3d btn-depth">
+                            <i class="fa-solid fa-cloud-arrow-up text-rosebrand-400"></i>
+                            انتشار فوری در سرور سراسری
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Copilot Card (Gemini 3 Flash Power) -->
+                <div class="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-rosebrand-50/90 via-violetbrand-50/90 to-white border border-rosebrand-200/70 shadow-card-3d">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-rosebrand-600"></i>
+                            دستیار هوشمند مدیر مدرسه (قدرت‌گرفته از Gemini)
+                        </h3>
+                        <span class="text-[10px] bg-rosebrand-100 text-rosebrand-700 font-bold px-2.5 py-0.5 rounded-full border border-rosebrand-200">
+                            Gemini 3 Flash
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-relaxed mb-3">
+                        تبدیل بخشنامه‌های خشک اداری به پیام‌های پرانرژی و محبت‌آمیز جهت انتشار در کانال شاد یا استخراج خودکار پرسش‌های پرتکرار:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button type="button" onclick="generateAiAnnouncementFromDocs()" id="aiDraftBtn" class="py-2.5 px-3 bg-white hover:bg-violetbrand-50 text-violetbrand-700 border border-violetbrand-200 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-2xs btn-depth">
+                            <i class="fa-solid fa-pen-nib"></i>
+                            نگارش پیام برای کانال اولیا
+                        </button>
+                        <button type="button" onclick="generateDynamicFaqQuestions()" id="aiFaqBtn" class="py-2.5 px-3 bg-white hover:bg-rosebrand-50 text-rosebrand-700 border border-rosebrand-200 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-2xs btn-depth">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            استخراج خودکار پرسش‌های متداول
+                        </button>
+                    </div>
+
+                    <!-- AI Output Box -->
+                    <div id="aiOutputBox" class="hidden mt-3 p-3.5 bg-white rounded-2xl border border-violetbrand-100 text-xs space-y-2 shadow-inner">
+                        <div class="flex items-center justify-between text-slate-500 text-[11px] pb-1.5 border-b border-slate-100">
+                            <span id="aiOutputTitle" class="font-bold text-violetbrand-800">پیش‌نویس تولیدی:</span>
+                            <button onclick="copyAiOutputToManualDraft()" class="text-rosebrand-600 hover:text-rosebrand-700 font-bold transition flex items-center gap-1">
+                                <i class="fa-solid fa-copy"></i>
+                                انتقال به کادر انتشار
+                            </button>
+                        </div>
+                        <div id="aiOutputText" class="text-slate-700 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto font-sans"></div>
+                    </div>
+                </div>
+
+                <!-- Active Documents Registry -->
+                <div class="bg-white/90 rounded-3xl p-5 border border-white shadow-card-3d backdrop-blur-md">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-folder-tree text-violetbrand-600"></i>
+                            بخشنامه‌ها و اسناد فعال در سرور مرکزی
+                        </h3>
+                        <span id="adminDocCounter" class="text-xs font-bold text-slate-400">۰ سند فعال</span>
+                    </div>
+                    
+                    <div id="adminDocumentsList" class="space-y-2.5">
+                        <!-- Dynamic via JS -->
+                    </div>
+                </div>
+
+                <!-- Return Button -->
+                <button onclick="toggleAdminView(false)" class="w-full py-3.5 bg-gradient-to-r from-rosebrand-600 to-violetbrand-600 hover:brightness-110 text-white rounded-2xl text-xs sm:text-sm font-extrabold shadow-btn-3d btn-depth flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    بازگشت به صفحه گفتگوی اولیا
+                </button>
             </div>
 
-            <!-- Return Button -->
-            <button onclick="toggleAdminView(false)" class="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-2xl text-sm font-bold shadow-md shadow-pink-600/20 active:scale-95 transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-arrow-right"></i>
-                بازگشت به صفحه گفتگوی اولیا
-            </button>
-        </div>
+        </main>
+    </div>
 
-    </main>
-</div>
-
-<!-- VIEW DOCUMENT MODAL -->
-<div id="viewDocModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-lg shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2 overflow-hidden">
-                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-file-lines text-sm"></i>
+    <!-- MODAL 1: VIEW DOCUMENT FULLSCREEN -->
+    <div id="viewDocModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 rounded-3xl p-5 md:p-6 w-full max-w-lg shadow-2xl border border-white/80 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5 overflow-hidden">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                        <i class="fa-solid fa-file-lines text-base"></i>
+                    </div>
+                    <div class="truncate">
+                        <h3 id="viewDocTitle" class="font-extrabold text-slate-800 text-xs sm:text-sm truncate">عنوان بخشنامه</h3>
+                        <p id="viewDocDate" class="text-[10px] text-slate-400 font-medium">تاریخ ثبت</p>
+                    </div>
                 </div>
-                <div class="truncate">
-                    <h3 id="viewDocTitle" class="font-bold text-slate-800 text-sm truncate">عنوان بخشنامه</h3>
-                    <p id="viewDocDate" class="text-[10px] text-slate-400">تاریخ ثبت</p>
-                </div>
+                <button onclick="closeViewDocModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
             </div>
-            <button onclick="closeViewDocModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
-                <i class="fa-solid fa-xmark text-base"></i>
-            </button>
-        </div>
-        <div id="viewDocContent" class="flex-1 overflow-y-auto p-3 bg-slate-50 rounded-2xl text-xs text-slate-700 leading-relaxed font-sans whitespace-pre-wrap border border-slate-100 selection:bg-pink-100 selection:text-pink-900">
-        </div>
-        <div class="flex justify-between items-center pt-2">
-            <button onclick="copyCurrentViewedDoc()" class="text-xs text-pink-600 hover:text-pink-700 font-bold flex items-center gap-1.5 py-2 px-3 rounded-xl hover:bg-pink-50 transition">
-                <i class="fa-solid fa-copy"></i>
-                کپی کل متن
-            </button>
-            <button onclick="closeViewDocModal()" class="py-2 px-5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition shadow-sm">
-                بستن پنجره
-            </button>
+            <div id="viewDocContent" class="flex-1 overflow-y-auto p-4 bg-slate-50/70 rounded-2xl text-xs text-slate-700 leading-relaxed font-sans whitespace-pre-wrap border border-slate-200/80">
+            </div>
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="copyCurrentViewedDoc()" class="text-xs text-rosebrand-600 hover:text-rosebrand-700 font-bold flex items-center gap-1.5 py-2 px-3 rounded-xl hover:bg-rosebrand-50 transition">
+                    <i class="fa-solid fa-copy"></i>
+                    کپی متن کامل
+                </button>
+                <button onclick="closeViewDocModal()" class="py-2.5 px-5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition shadow-btn-3d btn-depth">
+                    بستن پنجره
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- EDIT DOCUMENT MODAL -->
-<div id="editDocModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-lg shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2">
-                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-pen-to-square text-sm"></i>
+    <!-- MODAL 2: EDIT DOCUMENT -->
+    <div id="editDocModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 rounded-3xl p-5 md:p-6 w-full max-w-lg shadow-2xl border border-white/80 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+                        <i class="fa-solid fa-pen-to-square text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-slate-800 text-xs sm:text-sm">ویرایش بخشنامه مدرسه</h3>
+                        <p class="text-[10px] text-slate-400">تغییرات فوراً در دیتابیس متمرکز اعمال می‌شود</p>
+                    </div>
+                </div>
+                <button onclick="closeEditDocModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <input type="hidden" id="editingDocId">
+            <div class="space-y-3 flex-1 overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">عنوان بخشنامه یا سند:</label>
+                    <input type="text" id="editDocTitleInput" class="w-full text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 font-medium">
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm">ویرایش بخشنامه و مصوبه مدرسه</h3>
-                    <p class="text-[10px] text-slate-400">تغییرات بلافاصله در سرور سراسری ذخیره می‌شود</p>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">متن کامل مصوبه و اطلاعات:</label>
+                    <textarea id="editDocContentInput" rows="9" class="w-full text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 leading-relaxed font-sans"></textarea>
                 </div>
             </div>
-            <button onclick="closeEditDocModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
-                <i class="fa-solid fa-xmark text-base"></i>
-            </button>
-        </div>
-        <input type="hidden" id="editingDocId">
-        <div class="space-y-3 flex-1 overflow-y-auto">
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">عنوان بخشنامه یا سند:</label>
-                <input type="text" id="editDocTitleInput" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 font-medium">
+            <div class="flex gap-2 pt-2 border-t border-slate-100">
+                <button onclick="saveEditedDocument()" class="flex-1 py-3 bg-gradient-to-r from-rosebrand-600 to-violetbrand-600 text-white font-extrabold text-xs rounded-2xl shadow-btn-3d btn-depth flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    ذخیره و انتشار تغییرات
+                </button>
+                <button onclick="closeEditDocModal()" class="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition">
+                    انصراف
+                </button>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">متن کامل مصوبه و اطلاعات:</label>
-                <textarea id="editDocContentInput" rows="9" class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 leading-relaxed font-sans"></textarea>
-            </div>
-        </div>
-        <div class="flex gap-2 pt-2 border-t border-slate-100">
-            <button onclick="saveEditedDocument()" class="flex-1 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl transition shadow-sm active:scale-95 flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-                ذخیره و انتشار تغییرات
-            </button>
-            <button onclick="closeEditDocModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
-                انصراف
-            </button>
         </div>
     </div>
-</div>
 
-<!-- CHANGE PASSWORD MODAL -->
-<div id="changePasswordModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-200">
-        <div class="w-12 h-12 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center text-xl mx-auto">
-            <i class="fa-solid fa-key"></i>
-        </div>
-        <div class="text-center">
-            <h3 class="font-bold text-slate-800 text-base">تغییر رمز عبور مدیریت</h3>
-            <p class="text-xs text-slate-500 mt-1">رمز جدید بلافاصله جایگزین خواهد شد.</p>
-        </div>
-        <div class="space-y-2.5">
-            <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">رمز عبور فعلی:</label>
-                <input type="password" id="currentPassInput" placeholder="رمز فعلی..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-mono text-center">
+    <!-- MODAL 3: CHANGE ADMIN PASSWORD -->
+    <div id="changePasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-white/80 space-y-4">
+            <div class="w-12 h-12 bg-violetbrand-100 text-violetbrand-700 rounded-2xl flex items-center justify-center text-xl mx-auto shadow-inner">
+                <i class="fa-solid fa-key"></i>
             </div>
-            <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">رمز عبور جدید:</label>
-                <input type="password" id="newPassInput" placeholder="رمز جدید..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-mono text-center">
+            <div class="text-center">
+                <h3 class="font-extrabold text-slate-800 text-sm sm:text-base">تغییر رمز عبور پنل مدیریت</h3>
+                <p class="text-xs text-slate-500 mt-1">رمز جدید از این پس برای ورود لازم خواهد بود.</p>
             </div>
-            <div>
-                <label class="block text-[11px] font-bold text-slate-600 mb-1">تکرار رمز عبور جدید:</label>
-                <input type="password" id="confirmNewPassInput" placeholder="تکرار رمز جدید..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-mono text-center">
+            <div class="space-y-2.5">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">رمز عبور فعلی:</label>
+                    <input type="password" id="currentPassInput" placeholder="رمز فعلی..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-center">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">رمز عبور جدید:</label>
+                    <input type="password" id="newPassInput" placeholder="رمز جدید..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-center">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">تکرار رمز عبور جدید:</label>
+                    <input type="password" id="confirmNewPassInput" placeholder="تکرار رمز جدید..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-center">
+                </div>
             </div>
-        </div>
-        <div class="flex gap-2 pt-2">
-            <button onclick="handleSaveNewPassword()" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl transition shadow-sm active:scale-95">
-                ذخیره رمز جدید
-            </button>
-            <button onclick="closeChangePasswordModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
-                انصراف
-            </button>
+            <div class="flex gap-2 pt-2">
+                <button onclick="handleSaveNewPassword()" class="flex-1 py-3 bg-violetbrand-600 hover:bg-violetbrand-700 text-white font-extrabold text-xs rounded-2xl shadow-btn-3d btn-depth">
+                    ذخیره رمز جدید
+                </button>
+                <button onclick="closeChangePasswordModal()" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition">
+                    انصراف
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- ADMIN PASSWORD MODAL -->
-<div id="adminPasswordModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-200">
-        <div class="w-12 h-12 bg-pink-100 text-pink-600 rounded-2xl flex items-center justify-center text-xl mx-auto">
-            <i class="fa-solid fa-user-lock"></i>
-        </div>
-        <div class="text-center">
-            <h3 class="font-bold text-slate-800 text-base">ورود اختصاصی مدیریت مدرسه</h3>
-            <p class="text-xs text-slate-500 mt-1">این بخش ویژه بارگذاری بخشنامه‌هاست. اولیای گرامی نیازی به ورود ندارند.</p>
-        </div>
-        <div>
-            <input type="password" id="adminPasswordInput" placeholder="رمز عبور را وارد کنید..." class="w-full p-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-center font-mono" onkeydown="if(event.key === 'Enter') verifyAdminPassword()">
-            <p class="text-[11px] text-slate-400 mt-1.5 text-center">رمز پیش‌فرض: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-pink-600 font-bold">admin1403</code></p>
-        </div>
-        <div class="flex gap-2">
-            <button onclick="verifyAdminPassword()" class="flex-1 py-2.5 bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs rounded-xl transition shadow-sm">
-                ورود به پنل
-            </button>
-            <button onclick="closeAdminModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
-                انصراف
-            </button>
+    <!-- MODAL 4: ADMIN GATEWAY LOGIN -->
+    <div id="adminPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-white/80 space-y-4">
+            <div class="w-14 h-14 bg-rosebrand-100 text-rosebrand-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner">
+                <i class="fa-solid fa-shield-cat"></i>
+            </div>
+            <div class="text-center">
+                <h3 class="font-extrabold text-slate-800 text-sm sm:text-base">ورود اختصاصی مدیریت آموزشگاه</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">این بخش ویژه مدیریت است؛ اولیای گرامی برای پاسخگویی نیازی به رمز ندارند.</p>
+            </div>
+            <div>
+                <input type="password" id="adminPasswordInput" placeholder="رمز عبور مدیر را وارد کنید..." class="w-full p-3 text-xs sm:text-sm rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 text-center font-mono" onkeydown="if(event.key === 'Enter') verifyAdminPassword()">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="verifyAdminPassword()" class="flex-1 py-3 bg-gradient-to-r from-rosebrand-600 to-violetbrand-600 text-white font-extrabold text-xs rounded-2xl shadow-btn-3d btn-depth">
+                    ورود به پنل
+                </button>
+                <button onclick="closeAdminModal()" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition">
+                    انصراف
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Custom Toast Notification -->
-<div id="toastNotification" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-xl transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none z-50 flex items-center gap-2">
-    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
-    <span id="toastMsg">عملیات انجام شد</span>
-</div>
+    <!-- 3D Modern Toast Alert -->
+    <div id="toastNotification" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white text-xs px-5 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-24 opacity-0 pointer-events-none z-50 flex items-center gap-2.5 border border-white/20">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="toastMsg" class="font-medium">عملیات با موفقیت انجام شد</span>
+    </div>
 
 <script>
     // =========================================================================================
-    // 🔴 تنظیم اصلی و همیشگی:
-    // آدرس دیتابیس اختصاصی مدرسه:
+    // 🔴 تنظیم اصلی و دائمی دیتابیس مدرسه عارفان توس:
     // =========================================================================================
     const PERMANENT_FIREBASE_URL = "https://arefan-chat-a0721-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
     // Configure PDF.js Worker
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    // Default Seed Documents (Loaded if cloud database is initially fresh)
+    // Default Seed Documents
     const DEFAULT_SEED_DOCUMENTS = [
         {
             id: 'doc-default-rule',
@@ -521,6 +671,10 @@
 - پایه سوم: یکشنبه‌ها ساعت ۹ الی ۱۰
 - پیش‌دبستانی: چهارشنبه‌ها ساعت ۱۰:۳۰ الی ۱۱:۳۰
 - دفتر دبستان و پیش‌دبستانی روزهای شنبه تا چهارشنبه از ساعت ۸ تا ۱۳:۳۰ پاسخگوی مراجعین و تماس‌های اولیا است.
+
+[کلاس‌های فوق‌برنامه و مهارتی]:
+- برگزاری کارگاه‌های مهارتی شامل: مهارت‌های زندگی، فلسفه برای کودک (فبک)، هوش مالی، چرتکه، رباتیک، نقاشی خلاق و فعالیت‌های شاداب‌سازی ورزشی ویژه پیش‌دبستانی و دبستان.
+- زمان‌بندی دقیق و ثبت‌نام این دوره‌ها مطابق با تقویم پرورشی و بخشنامه‌های اطلاع‌رسانی شده در پیام‌رسان مدرسه انجام می‌پذیرد.
 `
         }
     ];
@@ -553,16 +707,16 @@
 
         text.innerText = msg;
         if (type === 'error') {
-            icon.className = 'fa-solid fa-circle-exclamation text-rose-400';
+            icon.className = 'fa-solid fa-circle-exclamation text-rosebrand-400 text-sm';
         } else {
-            icon.className = 'fa-solid fa-circle-check text-emerald-400';
+            icon.className = 'fa-solid fa-circle-check text-emerald-400 text-sm';
         }
 
-        toast.classList.remove('translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-24', 'opacity-0');
         toast.classList.add('translate-y-0', 'opacity-100');
 
         setTimeout(() => {
-            toast.classList.add('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-24', 'opacity-0');
             toast.classList.remove('translate-y-0', 'opacity-100');
         }, 3500);
     }
@@ -571,7 +725,6 @@
         const syncIcon = document.getElementById('syncIcon');
         if (syncIcon) syncIcon.classList.add('fa-spin');
 
-        // Check local storage cache first
         const localSaved = localStorage.getItem('school_cached_docs');
         if (localSaved) {
             try { 
@@ -598,24 +751,23 @@
                     if (data && Array.isArray(data)) {
                         appState.documents = data;
                         localStorage.setItem('school_cached_docs', JSON.stringify(appState.documents));
-                        document.getElementById('cloudStatusText').innerText = 'پایگاه مرکزی متصل و همگام است 🟢';
+                        document.getElementById('cloudStatusText').innerText = 'پایگاه مرکزی فعال و متصل است 🟢';
                         if (showNotice) showToast('اطلاعات با پایگاه مرکزی هماهنگ شد.');
                     } else if (data === null) {
-                        // DB empty: upload defaults to initialize it
-                        document.getElementById('cloudStatusText').innerText = 'پایگاه ابری متصل است (مقداردهی اولیه)';
+                        document.getElementById('cloudStatusText').innerText = 'پایگاه ابری آماده بارگذاری داده‌ها';
                         await syncDocsToCloud(false);
                     }
                 } else if (res.status === 401 || res.status === 403) {
-                    document.getElementById('cloudStatusText').innerText = 'خطای مجوز دیتابیس (Rules را روی true بگذارید)';
+                    document.getElementById('cloudStatusText').innerText = 'خطای مجوز دسترسی فایربیس (Rules روی true باشد)';
                     if (showNotice) showToast('دسترسی دیتابیس قفل است. در تب Rules فایربیس read و write را true بگذارید.', 'error');
                 }
             } catch (err) {
                 console.warn("Cloud connection issue:", err);
-                document.getElementById('cloudStatusText').innerText = 'عدم دسترسی به پایگاه ابری (بررسی اینترنت)';
-                if (showNotice) showToast('خطا در ارتباط با سرور مرکزی.', 'error');
+                document.getElementById('cloudStatusText').innerText = 'استفاده از حافظه پشتیبان محلی (آفلاین)';
+                if (showNotice) showToast('عدم دسترسی به پایگاه مرکزی.', 'error');
             }
         } else {
-            document.getElementById('cloudStatusText').innerText = 'آدرس پایگاه ابری هنوز تنظیم نشده است';
+            document.getElementById('cloudStatusText').innerText = 'آدرس پایگاه ابری تنظیم نشده است';
         }
 
         updateHeaderStatus();
@@ -623,7 +775,6 @@
         if (syncIcon) syncIcon.classList.remove('fa-spin');
     }
 
-    // Real-Time Listener using Server-Sent Events (SSE)
     function setupRealtimeListener() {
         const activeUrl = resolveActiveFirebaseUrl();
         if (!activeUrl || !activeUrl.startsWith('http')) return;
@@ -633,7 +784,6 @@
         }
 
         try {
-            // Firebase Realtime Database supports SSE on any endpoint with .json
             appState.eventSource = new EventSource(`${activeUrl}/documents.json`);
             
             appState.eventSource.addEventListener('put', (event) => {
@@ -648,9 +798,7 @@
                 } catch(e){}
             });
 
-            appState.eventSource.onerror = () => {
-                // Silently auto-reconnects
-            };
+            appState.eventSource.onerror = () => {};
         } catch(e) {
             console.warn("SSE Listener init:", e);
         }
@@ -671,10 +819,10 @@
                 if (showToastMessage) showToast('تغییرات در سرور سراسری ذخیره شد و برای همه اولیا فعال است.');
             } catch (err) {
                 console.error("Cloud push failed:", err);
-                if (showToastMessage) showToast('خطا در ذخیره در سرور ابری! تب Rules فایربیس را چک کنید.', 'error');
+                if (showToastMessage) showToast('خطا در ذخیره در سرور ابری! تب Rules را بررسی کنید.', 'error');
             }
         } else {
-            if (showToastMessage) showToast('آدرس پایگاه ابری ثبت نشده است. تغییرات فقط در این مرورگر ذخیره شد.', 'error');
+            if (showToastMessage) showToast('آدرس پایگاه ثبت نشده است؛ تغییرات فقط در این مرورگر ذخیره شد.', 'error');
         }
 
         updateHeaderStatus();
@@ -705,11 +853,11 @@
 
         if (badge) {
             if (activeUrl && activeUrl.startsWith('http')) {
-                badge.innerText = 'پایگاه ابری متصل است 🟢';
-                badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800';
+                badge.innerText = 'پایگاه ابری متصل 🟢';
+                badge.className = 'text-[10px] px-3 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
             } else {
                 badge.innerText = 'نیاز به تنظیم آدرس ⚠️';
-                badge.className = 'text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800';
+                badge.className = 'text-[10px] px-3 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200';
             }
         }
     }
@@ -719,7 +867,7 @@
         const badge = document.getElementById('docCountBadge');
         if (badge) badge.innerText = `${count} سند فعال`;
         const adminCounter = document.getElementById('adminDocCounter');
-        if (adminCounter) adminCounter.innerText = `${count} سند فعال`;
+        if (adminCounter) adminCounter.innerText = `${count} سند فعال در مخزن`;
     }
 
     function handleAdminButtonClick() {
@@ -743,18 +891,18 @@
             appState.isAdminLoggedIn = true;
             closeAdminModal();
             toggleAdminView(true);
-            document.getElementById('adminBtnLabel').innerText = 'پنل فعال';
+            document.getElementById('adminBtnLabel').innerText = 'میز کار مدیر';
             document.getElementById('adminLockIcon').className = 'fa-solid fa-lock-open text-emerald-300';
-            showToast('خوش آمدید، احراز هویت مدیریت با موفقیت انجام شد.');
+            showToast('خوش آمدید، احراز هویت مدیریت انجام شد.');
         } else {
-            showToast('رمز عبور اشتباه است!', 'error');
+            showToast('رمز عبور وارد شده نادرست است!', 'error');
         }
     }
 
     function logoutAdmin() {
         appState.isAdminLoggedIn = false;
         document.getElementById('adminBtnLabel').innerText = 'ورود مدیر';
-        document.getElementById('adminLockIcon').className = 'fa-solid fa-lock';
+        document.getElementById('adminLockIcon').className = 'fa-solid fa-shield-halved text-amber-300';
         toggleAdminView(false);
         showToast('از پنل مدیریت خارج شدید.');
     }
@@ -831,7 +979,7 @@
         const content = contentInput.value.trim();
 
         if (!title || !content) {
-            showToast('لطفاً عنوان و متن اطلاعیه را کامل بنویسید.', 'error');
+            showToast('لطفاً عنوان و متن مصوبه را کامل بنویسید.', 'error');
             return;
         }
 
@@ -846,7 +994,7 @@
         await syncDocsToCloud(true);
         titleInput.value = '';
         contentInput.value = '';
-        showToast('اطلاعیه جدید در سرور سراسری ثبت گردید.');
+        showToast('مصوبه جدید در سرور سراسری ثبت گردید.');
     }
 
     async function deleteDocument(docId) {
@@ -914,7 +1062,7 @@
 
         await syncDocsToCloud(true);
         closeEditDocModal();
-        showToast('تغییرات بخشنامه با موفقیت ذخیره و در سرور ثبت شد.');
+        showToast('تغییرات بخشنامه در سرور ذخیره شد.');
     }
 
     function openChangePasswordModal() {
@@ -939,12 +1087,12 @@
         }
 
         if (!newPass || newPass.length < 4) {
-            showToast('رمز عبور جدید باید حداقل ۴ نویسه باشد.', 'error');
+            showToast('رمز جدید باید حداقل ۴ رقم/حرف باشد.', 'error');
             return;
         }
 
         if (newPass !== confirmPass) {
-            showToast('رمز عبور جدید با تکرار آن یکسان نیست!', 'error');
+            showToast('تکرار رمز با رمز جدید یکسان نیست!', 'error');
             return;
         }
 
@@ -960,7 +1108,7 @@
 
         if (!appState.documents || appState.documents.length === 0) {
             list.innerHTML = `
-                <div class="p-4 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                <div class="p-5 text-center text-xs text-slate-400 bg-slate-50/80 rounded-2xl border border-dashed border-slate-200">
                     هیچ سندی در سیستم وجود ندارد. لطفاً یک فایل PDF یا اطلاعیه متنی بارگذاری فرمایید.
                 </div>
             `;
@@ -968,9 +1116,9 @@
         }
 
         list.innerHTML = appState.documents.map(d => `
-            <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-pink-50/40 transition gap-2">
-                <div class="flex items-center gap-2.5 overflow-hidden flex-1">
-                    <div class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0 text-sm">
+            <div class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-100 bg-white/95 hover:bg-rosebrand-50/40 transition gap-2 shadow-2xs">
+                <div class="flex items-center gap-3 overflow-hidden flex-1">
+                    <div class="w-9 h-9 rounded-xl bg-rosebrand-100 text-rosebrand-600 flex items-center justify-center shrink-0 text-sm shadow-inner">
                         <i class="fa-solid fa-file-lines"></i>
                     </div>
                     <div class="truncate">
@@ -979,13 +1127,13 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
-                    <button onclick="viewDocument('${d.id}')" title="مشاهده متن کامل بخشنامه" class="text-slate-500 hover:text-blue-600 p-2 rounded-lg hover:bg-white transition text-xs">
+                    <button onclick="viewDocument('${d.id}')" title="مشاهده کامل بخشنامه" class="text-slate-500 hover:text-blue-600 p-2 rounded-xl hover:bg-slate-50 transition text-xs">
                         <i class="fa-solid fa-eye"></i>
                     </button>
-                    <button onclick="openEditDocModal('${d.id}')" title="ویرایش این بخشنامه" class="text-slate-500 hover:text-amber-600 p-2 rounded-lg hover:bg-white transition text-xs">
+                    <button onclick="openEditDocModal('${d.id}')" title="ویرایش این بخشنامه" class="text-slate-500 hover:text-amber-600 p-2 rounded-xl hover:bg-slate-50 transition text-xs">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-                    <button onclick="deleteDocument('${d.id}')" title="حذف این بخشنامه" class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-white transition text-xs">
+                    <button onclick="deleteDocument('${d.id}')" title="حذف این بخشنامه" class="text-slate-400 hover:text-rosebrand-600 p-2 rounded-xl hover:bg-slate-50 transition text-xs">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
@@ -994,7 +1142,7 @@
     }
 
     async function callGeminiApi(systemPrompt, userQuery) {
-        const apiKey = ""; // Provided automatically in runtime environment
+        const apiKey = ""; // Runtime provides the key automatically
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
         const payload = {
@@ -1017,16 +1165,14 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
 
                 const result = await response.json();
                 const candidate = result.candidates?.[0];
                 if (candidate && candidate.content?.parts?.[0]?.text) {
                     return candidate.content.parts[0].text;
                 }
-                throw new Error("No text content returned from Gemini.");
+                throw new Error("No text returned from model.");
             } catch (err) {
                 if (attempt === maxRetries - 1) throw err;
                 await new Promise(resolve => setTimeout(resolve, delay));
@@ -1041,24 +1187,24 @@
             : 'هیچ بخشنامه‌ای در سیستم بارگذاری نشده است.';
 
         return `شما «مشاور و پاسخگوی هوشمند پیش‌دبستانی و دبستان دخترانه عارفان توس» هستید.
-شما با اولیای گرامیِ دانش‌آموزان به زبانی فوق‌العاده صبورانه، مهربان، دلسوز، محترمانه و شایسته گفت‌وگو می‌کنید.
+شما با اولیای گرامی به زبانی فوق‌العاده صبورانه، مهربان، دلسوز، محترمانه و شایسته گفت‌وگو می‌کنید.
 
-مجموعه قوانین، تقویم اجرایی و مصوبات مدرسه عارفان توس:
+مجموعه قوانین و مصوبات مدرسه عارفان توس:
 =========================================
 ${docsContext}
 =========================================
 
 اصول رفتاری شما:
 ۱. پاسخ شما صرفاً باید بر اساس اطلاعات بالا باشد.
-۲. اگر اطلاعات مشخصی در اسناد موجود ذکر نشده بود، با ادب بفرمایید: «این مورد در مصوبات آموزشگاه عارفان توس ثبت‌نشده است؛ خواهشمندیم در ساعات اداری با دفتر آموزشگاه تماس حاصل فرمایید.»
+۲. اگر اطلاعات مشخصی در اسناد بالا ذکر نشده بود، با ادب بفرمایید: «این مورد در مصوبات آموزشگاه عارفان توس ثبت‌نشده است؛ خواهشمندیم در ساعات اداری با دفتر آموزشگاه تماس حاصل فرمایید.»
 ۳. لحن سخن باید بسیار شایسته یک فضای تربیتی دخترانه باشد (استفاده از عباراتی نظیر «ولی گرامی»، «دختر دلبندمان»، «با سپاس و احترام»).
 ۴. نکات را مرتب، ساختاریافته و روان ارائه دهید.`;
     }
 
-    // Local text search fallback (instantaneous zero-error engine)
+    // Local Document Matching Fallback Engine
     function findAnswerInDocuments(question) {
         if (!appState.documents || appState.documents.length === 0) {
-            return "ولی گرامی؛ در حال حاضر بخشنامه‌ای در سامانه ثبت نشده است. لطفاً با دفتر مدرسه تماس بگیرید.";
+            return "ولی گرامی؛ در حال حاضر بخشنامه‌ای در سامانه ثبت نشده است. لطفاً با دفتر مدرسه تماس حاصل فرمایید.";
         }
 
         const stopWords = new Set(['از', 'به', 'در', 'با', 'که', 'این', 'آن', 'برای', 'چیست', 'کیست', 'چگونه', 'است', 'آیا', 'و', 'یا', 'را', 'ساعت']);
@@ -1085,7 +1231,7 @@ ${docsContext}
             return `ولی ارجمند؛ 🌸\nدرباره موضوع مطرح‌شده مصوبه‌ای در اسناد مدرسه ثبت نشده است.\nجهت راهنمایی دقیق‌تر، لطفاً با دفتر آموزشگاه تماس حاصل فرمایید.`;
         }
 
-        let output = `ولی گرامی و ارجمند؛ بر مبنای آخرین مصوبات مدرسه:\n\n`;
+        let output = `ولی گرامی و ارجمند؛ بر مبنای آخرین مصوبات آموزشگاه عارفان توس:\n\n`;
         results.slice(0, 2).forEach(r => {
             output += `📌 **${r.title}**:\n${r.text}\n\n`;
         });
@@ -1100,17 +1246,17 @@ ${docsContext}
         const outputText = document.getElementById('aiOutputText');
 
         if (!appState.documents || appState.documents.length === 0) {
-            showToast('لطفاً ابتدا حداقل یک سند یا بخشنامه در پنل قرار دهید.', 'error');
+            showToast('لطفاً ابتدا حداقل یک بخشنامه در پنل قرار دهید.', 'error');
             return;
         }
 
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> در حال نگارش...`;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> نگارش با هوش مصنوعی...`;
 
         try {
-            const systemPrompt = `شما کارشناس روابط عمومی دبستان و پیش‌دبستانی دخترانه هستید. وظیفه شما تنظیم یک اطلاعیه جذاب، کوتاه، شکیل و پرانرژی برای کانال شاد یا ایتا جهت اطلاع‌رسانی به اولیا بر اساس آخرین مصوبات است. پیام باید دارای اموجی‌های متناسب و لحن بسیار صمیمی باشد.`;
-            const userPrompt = `بر مبنای اسناد و آخرین مصوبات زیر، یک متن اطلاعیه آماده ارسال برای کانال اولیا تدوین کن:\n\n${appState.documents.slice(-2).map(d => d.title + ":\n" + d.content).join('\n\n')}`;
+            const systemPrompt = `شما کارشناس روابط عمومی دبستان و پیش‌دبستانی دخترانه عارفان توس هستید. وظیفه شما تنظیم یک اطلاعیه جذاب، کوتاه، شکیل و پرانرژی برای کانال شاد یا ایتا جهت اطلاع‌رسانی به اولیا بر اساس آخرین مصوبات است.`;
+            const userPrompt = `بر مبنای اسناد و آخرین مصوبات زیر، یک پیام آماده ارسال برای کانال اولیا تدوین کن:\n\n${appState.documents.slice(-2).map(d => d.title + ":\n" + d.content).join('\n\n')}`;
 
             const draft = await callGeminiApi(systemPrompt, userPrompt);
             outputTitle.innerText = 'پیش‌نویس پیام کانال اولیا (آماده انتشار):';
@@ -1119,7 +1265,7 @@ ${docsContext}
             showToast('متن اطلاعیه با هوش مصنوعی تدوین شد.');
         } catch (err) {
             console.error("Gemini draft error:", err);
-            showToast('خطا در ارتباط با هوش مصنوعی. لطفاً دوباره امتحان فرمایید.', 'error');
+            showToast('خطا در ارتباط با هوش مصنوعی. دوباره امتحان فرمایید.', 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -1138,26 +1284,27 @@ ${docsContext}
         btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> استخراج پرسش‌ها...`;
 
         try {
-            const systemPrompt = `شما یک دستیار هوش مصنوعی هستید. با بررسی متن بخشنامه‌های مدرسه دخترانه، ۳ پرسش کوتاه و کاربردی که بیشتر از همه برای اولیا دغدغه است را به زبان فارسی روان استخراج کن. فرمت پاسخ فقط و فقط ۳ خط باشد و در ابتدای هر سوال یک ایموجی بگذار. هیچ توضیح اضافه‌ای ننویس.`;
+            const systemPrompt = `با بررسی متن بخشنامه‌های دبستان دخترانه عارفان توس، ۴ پرسش کوتاه که بیشترین دغدغه اولیاست را به زبان فارسی استخراج کن. فقط ۴ خط باشد و ابتدای هر سوال ایموجی مرتبط بگذار.`;
             const userPrompt = `اسناد مدرسه:\n${appState.documents.map(d => d.title + ": " + d.content.substring(0, 300)).join('\n')}`;
 
             const response = await callGeminiApi(systemPrompt, userPrompt);
-            const questions = response.split('\n').map(q => q.trim().replace(/^[-*•\d\.]+\s*/, '')).filter(q => q.length > 5).slice(0, 3);
+            const questions = response.split('\n').map(q => q.trim().replace(/^[-*•\d\.]+\s*/, '')).filter(q => q.length > 5).slice(0, 4);
 
             if (questions.length > 0) {
                 const chipsContainer = document.getElementById('quickQuestionsChips');
                 if (chipsContainer) {
                     chipsContainer.innerHTML = questions.map(q => `
-                        <button onclick="askQuickPrompt('${q.replace(/'/g, "\\'")}')" class="text-xs bg-white hover:bg-pink-50 hover:text-pink-700 text-slate-700 py-1.5 px-3 rounded-full border border-pink-200 transition shadow-2xs text-right">
-                            ${q}
+                        <button onclick="askQuickPrompt('${q.replace(/'/g, "\\'")}')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                            <span class="text-xs font-medium">${q}</span>
+                            <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-rosebrand-500 group-hover:-translate-x-1 transition-all"></i>
                         </button>
                     `).join('');
                 }
-                showToast('۳ پرسش متداول هوشمند به صفحه گفتگو اضافه شد.');
+                showToast('پرسش‌های متداول هوشمند به‌روزرسانی شد.');
             }
         } catch (err) {
             console.error("Gemini FAQ error:", err);
-            showToast('عدم برقراری ارتباط با هوش مصنوعی جهت تولید پرسش‌ها.', 'error');
+            showToast('عدم برقراری ارتباط با هوش مصنوعی.', 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -1185,16 +1332,16 @@ ${docsContext}
 
         wrapper.innerHTML = `
             ${!isUser ? `
-                <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pink-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm text-sm">
+                <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-rosebrand-500 to-violetbrand-600 text-white flex items-center justify-center shrink-0 shadow-btn-3d text-sm">
                     <i class="fa-solid fa-comments"></i>
                 </div>
             ` : ''}
-            <div class="max-w-[85%] ${isUser ? 'chat-bubble-user bg-gradient-to-l from-pink-600 to-rose-600 text-white' : 'chat-bubble-ai bg-white text-slate-800 border border-slate-100'} p-3.5 shadow-sm text-sm leading-relaxed">
-                ${!isUser ? '<p class="font-bold text-pink-600 text-[11px] mb-1">دستیار امور اولیا و دانش‌آموزان</p>' : ''}
-                <div class="prose prose-sm">${text.replace(/\n/g, '<br>')}</div>
+            <div class="max-w-[85%] ${isUser ? 'bubble-user bg-gradient-to-l from-rosebrand-600 to-rose-600 text-white shadow-btn-3d' : 'bubble-ai bg-white text-slate-800 border border-slate-100 shadow-card-3d'} p-4 text-xs sm:text-sm leading-relaxed">
+                ${!isUser ? '<p class="font-extrabold text-rosebrand-600 text-[11px] mb-1 flex items-center gap-1.5"><i class="fa-solid fa-sparkles text-amber-500"></i> دستیار هوشمند عارفان توس</p>' : ''}
+                <div class="font-medium whitespace-pre-wrap">${text}</div>
             </div>
             ${isUser ? `
-                <div class="w-9 h-9 rounded-2xl bg-slate-200 text-slate-600 flex items-center justify-center shrink-0 shadow-sm text-sm">
+                <div class="w-9 h-9 rounded-2xl bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 shadow-sm text-sm border border-slate-300">
                     <i class="fa-solid fa-user"></i>
                 </div>
             ` : ''}
@@ -1260,11 +1407,120 @@ ${docsContext}
         showToast('صفحه گفتگو پاکسازی شد.');
     }
 
+    function initThreeJsBackground() {
+        const container = document.getElementById('threejs-canvas-container');
+        if (!container || typeof THREE === 'undefined') return;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // Subtle ambient spheres with soft geometry
+        const group = new THREE.Group();
+        scene.add(group);
+
+        // Geometric Floating Orbs with pleasant soft school colors (Pink, Violet, Soft Rose)
+        const geometries = [
+            new THREE.IcosahedronGeometry(1.4, 0),
+            new THREE.TorusGeometry(1.5, 0.4, 16, 50),
+            new THREE.OctahedronGeometry(1.2, 0),
+            new THREE.SphereGeometry(1.2, 24, 24)
+        ];
+
+        const materials = [
+            new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.3, metalness: 0.2, wireframe: true }),
+            new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.2, metalness: 0.3 }),
+            new THREE.MeshStandardMaterial({ color: 0xfb7185, roughness: 0.4, metalness: 0.1 }),
+            new THREE.MeshStandardMaterial({ color: 0xa78bfa, roughness: 0.3, metalness: 0.2, wireframe: true })
+        ];
+
+        const meshes = [];
+        for (let i = 0; i < 18; i++) {
+            const geom = geometries[i % geometries.length];
+            const mat = materials[i % materials.length];
+            const mesh = new THREE.Mesh(geom, mat);
+            
+            mesh.position.x = (Math.random() - 0.5) * 45;
+            mesh.position.y = (Math.random() - 0.5) * 35;
+            mesh.position.z = (Math.random() - 0.5) * 25;
+
+            mesh.rotation.x = Math.random() * Math.PI;
+            mesh.rotation.y = Math.random() * Math.PI;
+
+            const scale = Math.random() * 0.8 + 0.6;
+            mesh.scale.set(scale, scale, scale);
+
+            mesh.userData = {
+                rotSpeedX: (Math.random() - 0.5) * 0.012,
+                rotSpeedY: (Math.random() - 0.5) * 0.015,
+                floatSpeed: Math.random() * 0.01 + 0.005,
+                originalY: mesh.position.y
+            };
+
+            group.add(mesh);
+            meshes.push(mesh);
+        }
+
+        // Ambient and Directional Lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(20, 20, 20);
+        scene.add(dirLight);
+
+        const pointLight = new THREE.PointLight(0xf43f5e, 2, 50);
+        pointLight.position.set(-10, -10, 10);
+        scene.add(pointLight);
+
+        // Subtle Mouse Interaction
+        let mouseX = 0;
+        let mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation Loop
+        let clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsed = clock.getElapsedTime();
+
+            meshes.forEach(m => {
+                m.rotation.x += m.userData.rotSpeedX;
+                m.rotation.y += m.userData.rotSpeedY;
+                m.position.y = m.userData.originalY + Math.sin(elapsed * 1.5 + m.position.x) * 1.2;
+            });
+
+            // Gentle camera parallax
+            camera.position.x += (mouseX * 4 - camera.position.x) * 0.03;
+            camera.position.y += (mouseY * 4 - camera.position.y) * 0.03;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    }
+
     window.onload = function() {
+        initThreeJsBackground();
         fetchDocsFromCloud(false);
         setupRealtimeListener();
         
-        // Safety polling every 45 seconds to guarantee synchronization
         setInterval(() => {
             fetchDocsFromCloud(false);
         }, 45000);
