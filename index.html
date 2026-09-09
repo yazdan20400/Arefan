@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>سامانه پاسخگوی هوشمند دبستان و پیش‌دبستانی دخترانه</title>
+    <title>پیش‌دبستانی و دبستان دخترانه عارفان توس | سامانه پاسخگوی هوشمند</title>
     
     <!-- Google Fonts: Vazirmatn -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -97,13 +97,12 @@
                 <i class="fa-solid fa-school"></i>
             </div>
             <div>
-                <h1 class="font-bold text-base md:text-lg leading-tight flex items-center gap-1.5">
-                    پاسخگوی دبستان و پیش‌دبستانی
-                    <span class="text-[10px] bg-white/25 text-white px-2 py-0.5 rounded-full font-medium">دخترانه</span>
+                <h1 class="font-bold text-sm sm:text-base md:text-lg leading-tight flex items-center gap-1.5">
+                    پیش‌دبستانی و دبستان دخترانه عارفان توس
                 </h1>
                 <p class="text-xs text-pink-100 flex items-center gap-1 mt-0.5">
                     <span id="liveStatusPulse" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="liveStatusText">متصل به پایگاه سراسری</span>
+                    <span id="liveStatusText">سامانه پاسخگوی هوشمند اولیا</span>
                 </p>
             </div>
         </div>
@@ -146,8 +145,8 @@
                     </div>
                     <div class="max-w-[85%] chat-bubble-ai bg-white p-3.5 shadow-sm border border-slate-100 text-slate-800 text-sm leading-relaxed">
                         <p class="font-bold text-pink-600 text-xs mb-1">دستیار امور اولیا و نوآموزان 🌸</p>
-                        سلام و درود خدمت اولیای ارجمند و گرامی.<br>
-                        تمامی برنامه‌های کلاسی، بخشنامه‌ها، ساعات ورود و خروج و مصوبات مدرسه مستقیماً توسط مدیریت محترم در این سامانه ثبت و به‌روزرسانی می‌شود.<br><br>
+                        سلام و درود خدمت اولیای ارجمند و گرامی دبستان و پیش‌دبستانی دخترانه عارفان توس.<br>
+                        تمامی برنامه‌های کلاسی، بخشنامه‌ها، ساعات ورود و خروج و مصوبات آموزشگاه مستقیماً توسط مدیریت محترم در این سامانه ثبت و به‌روزرسانی می‌شود.<br><br>
                         هر سوالی درباره دختر دلبندتان و امور مدرسه دارید بفرمایید تا فوراً بر اساس آخرین مصوبات پاسخ دهم.
                     </div>
                 </div>
@@ -219,9 +218,15 @@
                     <i class="fa-solid fa-cloud-bolt"></i>
                 </div>
                 <div class="flex-1">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
                         <h2 class="font-bold text-slate-800 text-sm md:text-base">میز کار مدیر مدرسه (همگام‌سازی بلادرنگ همگانی)</h2>
-                        <button onclick="logoutAdmin()" class="text-xs text-rose-600 hover:underline font-bold">خروج از پنل</button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openChangePasswordModal()" class="text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 active:scale-95">
+                                <i class="fa-solid fa-key"></i>
+                                تغییر رمز عبور
+                            </button>
+                            <button onclick="logoutAdmin()" class="text-xs text-rose-600 hover:underline font-bold px-2 py-1">خروج از پنل</button>
+                        </div>
                     </div>
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">
                         هر فایلی که در این قسمت اضافه یا حذف فرمایید، در همان لحظه در دیتابیس مرکزی ثبت شده و برای تمامی اولیا در همان آدرس ثابت بدون نیاز به لینک جدید به‌روزرسانی می‌شود.
@@ -347,6 +352,112 @@
     </main>
 </div>
 
+<!-- VIEW DOCUMENT MODAL -->
+<div id="viewDocModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-lg shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2 overflow-hidden">
+                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-file-lines text-sm"></i>
+                </div>
+                <div class="truncate">
+                    <h3 id="viewDocTitle" class="font-bold text-slate-800 text-sm truncate">عنوان بخشنامه</h3>
+                    <p id="viewDocDate" class="text-[10px] text-slate-400">تاریخ ثبت</p>
+                </div>
+            </div>
+            <button onclick="closeViewDocModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+        <div id="viewDocContent" class="flex-1 overflow-y-auto p-3 bg-slate-50 rounded-2xl text-xs text-slate-700 leading-relaxed font-sans whitespace-pre-wrap border border-slate-100 selection:bg-pink-100 selection:text-pink-900">
+        </div>
+        <div class="flex justify-between items-center pt-2">
+            <button onclick="copyCurrentViewedDoc()" class="text-xs text-pink-600 hover:text-pink-700 font-bold flex items-center gap-1.5 py-2 px-3 rounded-xl hover:bg-pink-50 transition">
+                <i class="fa-solid fa-copy"></i>
+                کپی کل متن
+            </button>
+            <button onclick="closeViewDocModal()" class="py-2 px-5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition shadow-sm">
+                بستن پنجره
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT DOCUMENT MODAL -->
+<div id="editDocModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-5 md:p-6 w-full max-w-lg shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-pen-to-square text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm">ویرایش بخشنامه و مصوبه مدرسه</h3>
+                    <p class="text-[10px] text-slate-400">تغییرات بلافاصله در سرور سراسری ذخیره می‌شود</p>
+                </div>
+            </div>
+            <button onclick="closeEditDocModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+        <input type="hidden" id="editingDocId">
+        <div class="space-y-3 flex-1 overflow-y-auto">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">عنوان بخشنامه یا سند:</label>
+                <input type="text" id="editDocTitleInput" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 font-medium">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">متن کامل مصوبه و اطلاعات:</label>
+                <textarea id="editDocContentInput" rows="9" class="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 leading-relaxed font-sans"></textarea>
+            </div>
+        </div>
+        <div class="flex gap-2 pt-2 border-t border-slate-100">
+            <button onclick="saveEditedDocument()" class="flex-1 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold text-xs rounded-xl transition shadow-sm active:scale-95 flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                ذخیره و انتشار تغییرات
+            </button>
+            <button onclick="closeEditDocModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                انصراف
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div id="changePasswordModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-200">
+        <div class="w-12 h-12 bg-purple-100 text-purple-700 rounded-2xl flex items-center justify-center text-xl mx-auto">
+            <i class="fa-solid fa-key"></i>
+        </div>
+        <div class="text-center">
+            <h3 class="font-bold text-slate-800 text-base">تغییر رمز عبور مدیریت</h3>
+            <p class="text-xs text-slate-500 mt-1">رمز جدید بلافاصله جایگزین خواهد شد.</p>
+        </div>
+        <div class="space-y-2.5">
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">رمز عبور فعلی:</label>
+                <input type="password" id="currentPassInput" placeholder="رمز فعلی..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-mono text-center">
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">رمز عبور جدید:</label>
+                <input type="password" id="newPassInput" placeholder="رمز جدید..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-mono text-center">
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">تکرار رمز عبور جدید:</label>
+                <input type="password" id="confirmNewPassInput" placeholder="تکرار رمز جدید..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-purple-500 font-mono text-center">
+            </div>
+        </div>
+        <div class="flex gap-2 pt-2">
+            <button onclick="handleSaveNewPassword()" class="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl transition shadow-sm active:scale-95">
+                ذخیره رمز جدید
+            </button>
+            <button onclick="closeChangePasswordModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                انصراف
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- ADMIN PASSWORD MODAL -->
 <div id="adminPasswordModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-200">
@@ -381,9 +492,7 @@
 <script>
     // =========================================================================================
     // 🔴 تنظیم اصلی و همیشگی:
-    // آدرس دیتابیس رایگان Firebase مدرسه خود را بین دو گیومه زیر قرار دهید.
-    // به محض قرار دادن آدرس در این خط، تمامی دستگاه‌ها، گوشی‌ها و مرورگرها بدون نیاز به هیچ لینکی 
-    // همیشه به همین پایگاه وصل شده و به صورت لحظه‌ای همگام خواهند بود.
+    // آدرس دیتابیس اختصاصی مدرسه:
     // =========================================================================================
     const PERMANENT_FIREBASE_URL = "https://arefan-chat-a0721-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
@@ -746,6 +855,105 @@
         showToast('سند مورد نظر از سرور حذف شد.');
     }
 
+    function viewDocument(docId) {
+        const doc = appState.documents.find(d => d.id === docId);
+        if (!doc) return;
+
+        document.getElementById('viewDocTitle').innerText = doc.title;
+        document.getElementById('viewDocDate').innerText = `ثبت شده در تاریخ: ${doc.date}`;
+        document.getElementById('viewDocContent').innerText = doc.content;
+        document.getElementById('viewDocModal').classList.remove('hidden');
+    }
+
+    function closeViewDocModal() {
+        document.getElementById('viewDocModal').classList.add('hidden');
+    }
+
+    function copyCurrentViewedDoc() {
+        const content = document.getElementById('viewDocContent').innerText;
+        if (!content) return;
+        const temp = document.createElement('textarea');
+        temp.value = content;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        showToast('متن بخشنامه در کلیپ‌بورد کپی شد.');
+    }
+
+    function openEditDocModal(docId) {
+        const doc = appState.documents.find(d => d.id === docId);
+        if (!doc) return;
+
+        document.getElementById('editingDocId').value = doc.id;
+        document.getElementById('editDocTitleInput').value = doc.title;
+        document.getElementById('editDocContentInput').value = doc.content;
+        document.getElementById('editDocModal').classList.remove('hidden');
+    }
+
+    function closeEditDocModal() {
+        document.getElementById('editDocModal').classList.add('hidden');
+    }
+
+    async function saveEditedDocument() {
+        const docId = document.getElementById('editingDocId').value;
+        const newTitle = document.getElementById('editDocTitleInput').value.trim();
+        const newContent = document.getElementById('editDocContentInput').value.trim();
+
+        if (!newTitle || !newContent) {
+            showToast('عنوان و متن بخشنامه نمی‌تواند خالی باشد.', 'error');
+            return;
+        }
+
+        const docIndex = appState.documents.findIndex(d => d.id === docId);
+        if (docIndex === -1) return;
+
+        appState.documents[docIndex].title = newTitle;
+        appState.documents[docIndex].content = newContent;
+        appState.documents[docIndex].date = new Date().toLocaleDateString('fa-IR') + ' (ویرایش‌شده)';
+
+        await syncDocsToCloud(true);
+        closeEditDocModal();
+        showToast('تغییرات بخشنامه با موفقیت ذخیره و در سرور ثبت شد.');
+    }
+
+    function openChangePasswordModal() {
+        document.getElementById('currentPassInput').value = '';
+        document.getElementById('newPassInput').value = '';
+        document.getElementById('confirmNewPassInput').value = '';
+        document.getElementById('changePasswordModal').classList.remove('hidden');
+    }
+
+    function closeChangePasswordModal() {
+        document.getElementById('changePasswordModal').classList.add('hidden');
+    }
+
+    function handleSaveNewPassword() {
+        const currentPass = document.getElementById('currentPassInput').value;
+        const newPass = document.getElementById('newPassInput').value.trim();
+        const confirmPass = document.getElementById('confirmNewPassInput').value.trim();
+
+        if (currentPass !== appState.adminPassword) {
+            showToast('رمز عبور فعلی نادرست است!', 'error');
+            return;
+        }
+
+        if (!newPass || newPass.length < 4) {
+            showToast('رمز عبور جدید باید حداقل ۴ نویسه باشد.', 'error');
+            return;
+        }
+
+        if (newPass !== confirmPass) {
+            showToast('رمز عبور جدید با تکرار آن یکسان نیست!', 'error');
+            return;
+        }
+
+        appState.adminPassword = newPass;
+        localStorage.setItem('school_admin_pass', newPass);
+        closeChangePasswordModal();
+        showToast('رمز عبور مدیریت با موفقیت تغییر یافت.');
+    }
+
     function renderAdminDocs() {
         const list = document.getElementById('adminDocumentsList');
         if (!list) return;
@@ -760,8 +968,8 @@
         }
 
         list.innerHTML = appState.documents.map(d => `
-            <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-pink-50/40 transition">
-                <div class="flex items-center gap-2.5 overflow-hidden">
+            <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-pink-50/40 transition gap-2">
+                <div class="flex items-center gap-2.5 overflow-hidden flex-1">
                     <div class="w-8 h-8 rounded-lg bg-pink-100 text-pink-600 flex items-center justify-center shrink-0 text-sm">
                         <i class="fa-solid fa-file-lines"></i>
                     </div>
@@ -770,9 +978,17 @@
                         <p class="text-[10px] text-slate-400 mt-0.5">ثبت در تاریخ: ${d.date}</p>
                     </div>
                 </div>
-                <button onclick="deleteDocument('${d.id}')" title="حذف این بخشنامه" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-white transition text-xs shrink-0">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
+                <div class="flex items-center gap-1 shrink-0">
+                    <button onclick="viewDocument('${d.id}')" title="مشاهده متن کامل بخشنامه" class="text-slate-500 hover:text-blue-600 p-2 rounded-lg hover:bg-white transition text-xs">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button onclick="openEditDocModal('${d.id}')" title="ویرایش این بخشنامه" class="text-slate-500 hover:text-amber-600 p-2 rounded-lg hover:bg-white transition text-xs">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button onclick="deleteDocument('${d.id}')" title="حذف این بخشنامه" class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-white transition text-xs">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
             </div>
         `).join('');
     }
@@ -824,17 +1040,17 @@
             ? appState.documents.map((d, i) => `[سند شماره ${i + 1}: «${d.title}»]\n${d.content}`).join('\n\n')
             : 'هیچ بخشنامه‌ای در سیستم بارگذاری نشده است.';
 
-        return `شما «مشاور و پاسخگوی هوشمند دبستان و پیش‌دبستانی دخترانه» هستید.
+        return `شما «مشاور و پاسخگوی هوشمند پیش‌دبستانی و دبستان دخترانه عارفان توس» هستید.
 شما با اولیای گرامیِ دانش‌آموزان به زبانی فوق‌العاده صبورانه، مهربان، دلسوز، محترمانه و شایسته گفت‌وگو می‌کنید.
 
-مجموعه قوانین، تقویم اجرایی و مصوبات مدرسه:
+مجموعه قوانین، تقویم اجرایی و مصوبات مدرسه عارفان توس:
 =========================================
 ${docsContext}
 =========================================
 
 اصول رفتاری شما:
 ۱. پاسخ شما صرفاً باید بر اساس اطلاعات بالا باشد.
-۲. اگر اطلاعات مشخصی در اسناد موجود ذکر نشده بود، با ادب بفرمایید: «این مورد در مصوبات ثبت‌نشده است؛ خواهشمندیم در ساعات اداری با دفتر آموزشگاه تماس حاصل فرمایید.»
+۲. اگر اطلاعات مشخصی در اسناد موجود ذکر نشده بود، با ادب بفرمایید: «این مورد در مصوبات آموزشگاه عارفان توس ثبت‌نشده است؛ خواهشمندیم در ساعات اداری با دفتر آموزشگاه تماس حاصل فرمایید.»
 ۳. لحن سخن باید بسیار شایسته یک فضای تربیتی دخترانه باشد (استفاده از عباراتی نظیر «ولی گرامی»، «دختر دلبندمان»، «با سپاس و احترام»).
 ۴. نکات را مرتب، ساختاریافته و روان ارائه دهید.`;
     }
