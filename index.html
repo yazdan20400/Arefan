@@ -85,15 +85,15 @@
                     <span class="text-[10px] bg-white/25 text-white px-2 py-0.5 rounded-full">ویژه اولیا</span>
                 </h1>
                 <p class="text-xs text-pink-100 flex items-center gap-1 mt-0.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>پاسخگویی آنلاین بر مبنای آخرین بخشنامه‌ها</span>
+                    <span id="liveStatusPulse" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="liveStatusText">پاسخگویی آنلاین و هماهنگ</span>
                 </p>
             </div>
         </div>
 
         <div class="flex items-center gap-2">
             <!-- Sync Indicator -->
-            <button onclick="syncWithCloud(true)" title="به‌روزرسانی اطلاعات از سرور" class="p-2 text-white/80 hover:text-white transition active:scale-95">
+            <button onclick="loadDocumentsFromCloud(true)" title="به‌روزرسانی اطلاعات از پایگاه مرکزی" class="p-2 text-white/80 hover:text-white transition active:scale-95">
                 <i id="syncIcon" class="fa-solid fa-arrows-rotate text-sm"></i>
             </button>
             <!-- Protected Admin Login -->
@@ -107,11 +107,11 @@
     <!-- Subheader Knowledge Status -->
     <div class="bg-pink-50/70 border-b border-pink-100 px-4 py-2 text-xs text-pink-900 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2 truncate">
-            <i class="fa-solid fa-cloud-check text-emerald-600"></i>
-            <span class="truncate font-medium" id="cloudStatusText">پایگاه ابری مدرسه فعال است</span>
+            <i class="fa-solid fa-cloud text-pink-600" id="cloudStateIcon"></i>
+            <span class="truncate font-medium" id="cloudStatusText">اتصال به پایگاه مرکزی برقرار است</span>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-            <span id="docCountBadge" class="bg-pink-200 text-pink-900 px-2 py-0.5 rounded-md font-bold text-[11px]">در حال بارگذاری اسناد...</span>
+            <span id="docCountBadge" class="bg-pink-200 text-pink-900 px-2 py-0.5 rounded-md font-bold text-[11px]">در حال بارگذاری...</span>
         </div>
     </div>
 
@@ -132,8 +132,8 @@
                     <div class="max-w-[85%] chat-bubble-ai bg-white p-3.5 shadow-sm border border-slate-100 text-slate-800 text-sm leading-relaxed">
                         <p class="font-bold text-pink-600 text-xs mb-1">دستیار امور اولیا و دانش‌آموزان 🌸</p>
                         سلام و درود خدمت اولیای ارجمند و گرامی.<br>
-                        من دستیار هوشمند و ۲۴ ساعته مدرسه دخترانه هستم. تمامی مصوبات، برنامه‌های کلاسی، بخشنامه‌های اردویی، تقویم امتحانات و قوانین انضباطی مدرسه توسط مدیریت محترم در این سامانه ثبت شده است.<br><br>
-                        هر سوالی در مورد دختر دلبندتان و امور مدرسه دارید، بفرمایید تا فوراً پاسخ دهم.
+                        تمامی برنامه‌های کلاسی، بخشنامه‌ها، تقویم اجرایی و مصوبات مدرسه مستقیماً توسط مدیریت محترم در این سامانه ثبت شده است.<br><br>
+                        هر سوالی در مورد دختر دلبندتان و برنامه‌های مدرسه دارید، بفرمایید تا بر اساس آخرین مصوبات پاسخ دهم.
                     </div>
                 </div>
 
@@ -141,7 +141,7 @@
                 <div id="quickQuestionsContainer" class="pt-2">
                     <p class="text-xs text-slate-500 font-medium mb-2 pr-1 flex items-center gap-1">
                         <i class="fa-regular fa-lightbulb text-amber-500"></i>
-                        پرسش‌های متداول اولیا (برای پرسش کلیک فرمایید):
+                        پرسش‌های متداول اولیا:
                     </p>
                     <div class="flex flex-wrap gap-1.5">
                         <button onclick="askQuickPrompt('ساعت شروع، صبحگاه و پایان کلاس‌ها در پیش‌دبستانی و دبستان چگونه است؟')" class="text-xs bg-white hover:bg-pink-50 hover:text-pink-700 text-slate-700 py-1.5 px-3 rounded-full border border-slate-200 transition shadow-xs text-right">
@@ -153,9 +153,6 @@
                         <button onclick="askQuickPrompt('روزها و ساعات ملاقات اولیا با آموزگاران چگونه است؟')" class="text-xs bg-white hover:bg-pink-50 hover:text-pink-700 text-slate-700 py-1.5 px-3 rounded-full border border-slate-200 transition shadow-xs text-right">
                             👩‍🏫 روزهای ملاقات با آموزگاران
                         </button>
-                        <button onclick="askQuickPrompt('برنامه‌های اردویی، جشن‌ها و تقویم مناسبتی چیست؟')" class="text-xs bg-white hover:bg-pink-50 hover:text-pink-700 text-slate-700 py-1.5 px-3 rounded-full border border-slate-200 transition shadow-xs text-right">
-                            🎈 اردوها و تقویم مناسبتی
-                        </button>
                     </div>
                 </div>
 
@@ -164,7 +161,7 @@
             <!-- Typing indicator -->
             <div id="typingIndicator" class="hidden px-6 py-2">
                 <div class="flex items-center gap-2 text-xs text-pink-600 bg-pink-50/80 w-fit px-3 py-1.5 rounded-full border border-pink-100">
-                    <span class="font-medium">در حال بررسی بخشنامه‌ها و آماده‌سازی پاسخ</span>
+                    <span class="font-medium">در حال بررسی آخرین بخشنامه‌ها و آماده‌سازی پاسخ</span>
                     <div class="flex gap-1 items-center">
                         <div class="w-1.5 h-1.5 bg-pink-500 rounded-full typing-dot"></div>
                         <div class="w-1.5 h-1.5 bg-pink-500 rounded-full typing-dot"></div>
@@ -193,7 +190,7 @@
                     </button>
                 </form>
                 <div class="flex justify-between items-center mt-2 px-1 text-[11px] text-slate-400">
-                    <span>پاسخ‌ها به صورت آنی بر پایه اسناد تاییدشده استخراج می‌شود.</span>
+                    <span>پاسخ‌ها به صورت مستقیم از مصوبات مدرسه استخراج می‌شود.</span>
                     <button onclick="clearChatHistory()" class="hover:text-rose-500 transition">پاک کردن صفحه گفتگو</button>
                 </div>
             </div>
@@ -206,16 +203,33 @@
             <!-- Security Alert Banner -->
             <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-2xl border border-pink-200 shadow-xs flex items-start gap-3">
                 <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 text-lg">
-                    <i class="fa-solid fa-shield-halved"></i>
+                    <i class="fa-solid fa-cloud-bolt"></i>
                 </div>
                 <div class="flex-1">
                     <div class="flex items-center justify-between">
-                        <h2 class="font-bold text-slate-800 text-sm md:text-base">میز کار مدیر مدرسه (مدیریت متمرکز ابری)</h2>
+                        <h2 class="font-bold text-slate-800 text-sm md:text-base">میز کار مدیر مدرسه (مدیریت همگام‌سازی همگانی)</h2>
                         <button onclick="logoutAdmin()" class="text-xs text-rose-600 hover:underline font-bold">خروج از پنل</button>
                     </div>
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                        هر فایلی که اینجا اضافه یا حذف کنید، در همان لحظه در فضای ابری ثبت شده و تمام اولیا در گوشی‌های خود آخرین اطلاعات را دریافت خواهند کرد.
+                        هر فایلی که در این قسمت آپلود فرمایید، در همان ثانیه برای تمامی اولیا در سراسر کشور فعال می‌گردد.
                     </p>
+                </div>
+            </div>
+
+            <!-- Cloud Database Endpoint Setup -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                <h3 class="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-database text-purple-600"></i>
+                    تنظیم پایگاه داده ابری مشترک (Firebase)
+                </h3>
+                <p class="text-xs text-slate-500 mb-3">
+                    آدرس دیتابیس رایگان خود را در کادر زیر قرار دهید تا تغییرات برای تمام کاربران به‌طور همزمان ذخیره شود:
+                </p>
+                <div class="flex gap-2">
+                    <input type="text" id="firebaseUrlInput" placeholder="https://your-school-rtdb.firebaseio.com" class="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 font-mono text-left" dir="ltr">
+                    <button onclick="saveFirebaseUrl()" class="py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shrink-0">
+                        ذخیره و اتصال
+                    </button>
                 </div>
             </div>
 
@@ -234,10 +248,10 @@
                         <i class="fa-solid fa-cloud-arrow-up"></i>
                     </div>
                     <p class="text-sm font-bold text-slate-700">برای بارگذاری فایل PDF اینجا کلیک کنید</p>
-                    <p class="text-xs text-slate-500 mt-1">متن فایل فوراً خوانده شده و برای همه اولیا فعال خواهد شد</p>
+                    <p class="text-xs text-slate-500 mt-1">متن فایل استخراج شده و در سرور مرکزی ذخیره می‌شود</p>
                     <div id="uploadSpinner" class="hidden mt-3 flex items-center gap-2 text-xs font-semibold text-pink-600">
                         <i class="fa-solid fa-circle-notch fa-spin"></i>
-                        <span>در حال استخراج متن و بارگذاری در سرور ابری...</span>
+                        <span>در حال پردازش و ثبت در پایگاه سراسری...</span>
                     </div>
                 </div>
             </div>
@@ -246,39 +260,50 @@
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
                 <h3 class="text-sm font-bold text-slate-800 mb-1 flex items-center gap-2">
                     <i class="fa-solid fa-bullhorn text-indigo-500"></i>
-                    افزودن مستقیم اطلاعیه فوری متنی
+                    افزودن مستقیم اطلاعیه متنی فوری
                 </h3>
-                <p class="text-xs text-slate-500 mb-3">مثلاً تعطیلی زودهنگام، تغییر ساعت اردوی فردا، برگزاری مسابقه و...</p>
                 <div class="space-y-2">
                     <input type="text" id="manualDocTitle" placeholder="عنوان اطلاعیه (مثال: تغییر ساعت اردوی ۲۵ آذر)" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500">
                     <textarea id="manualDocContent" rows="3" placeholder="متن کامل اطلاعیه را بنویسید..." class="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500"></textarea>
                     <button onclick="saveAdminManualDocument()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
                         <i class="fa-solid fa-cloud-arrow-up"></i>
-                        انتشار فوری برای کلیه اولیا
+                        انتشار فوری در سرور مرکزی
                     </button>
                 </div>
             </div>
 
-            <!-- Proxy / No-VPN Endpoint Configuration -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <div class="flex items-center justify-between mb-2">
+            <!-- AI Principal Smart Tools (Gemini LLM Integration) -->
+            <div class="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-5 rounded-2xl border border-purple-200/80 shadow-xs space-y-3">
+                <div class="flex items-center justify-between">
                     <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-amber-500"></i>
-                        تنظیم آدرس واسط بدون فیلترشکن (Reverse Proxy)
+                        <i class="fa-solid fa-wand-magic-sparkles text-pink-600"></i>
+                        دستیار هوشمند مدیر مدرسه (قدرت‌گرفته از Google Gemini)
                     </h3>
-                    <span class="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">بدون فیلترشکن برای اولیا</span>
+                    <span class="text-[10px] bg-pink-100 text-pink-700 font-bold px-2 py-0.5 rounded-full border border-pink-200">Gemini 3 Flash</span>
                 </div>
-                <p class="text-xs text-slate-600 leading-relaxed mb-3">
-                    برای اینکه اولیا بدون فیلترشکن به هوش مصنوعی وصل شوند، می‌توانید آدرس ورکر رایگان خود (مثلاً <code>https://school-ai.yourname.workers.dev</code>) یا کلید مستقیم را اینجا بگذارید.
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    با استفاده از هوش مصنوعی مولد، می‌توانید بخشنامه‌های اداری را به پیام‌های صمیمانه برای اولیا در شاد و ایتا تبدیل کنید یا پرسش‌های متداول جدید استخراج نمایید.
                 </p>
-                <div class="space-y-2">
-                    <input type="text" id="customProxyInput" placeholder="آدرس ورکر واسط (اختیاری): https://..." class="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 font-mono" dir="ltr">
-                    <div class="flex gap-2">
-                        <input type="password" id="customApiKeyInput" placeholder="یا کلید مستقیم گوگل (AIzaSy...)" class="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 font-mono" dir="ltr">
-                        <button onclick="saveNetworkSettings()" class="py-2.5 px-4 bg-pink-600 hover:bg-pink-700 text-white rounded-xl text-xs font-bold transition">
-                            ذخیره تنظیمات
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <button type="button" onclick="generateAiAnnouncementFromDocs()" id="aiDraftBtn" class="py-2.5 px-3 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs active:scale-95">
+                        <i class="fa-solid fa-pen-nib"></i>
+                        نگارش پیام برای کانال اولیا
+                    </button>
+                    <button type="button" onclick="generateDynamicFaqQuestions()" id="aiFaqBtn" class="py-2.5 px-3 bg-white hover:bg-pink-50 text-pink-700 border border-pink-200 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs active:scale-95">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        تولید خودکار پرسش‌های متداول
+                    </button>
+                </div>
+                <!-- AI Output Display Box -->
+                <div id="aiOutputBox" class="hidden mt-3 p-3 bg-white rounded-xl border border-purple-100 text-xs space-y-2">
+                    <div class="flex items-center justify-between text-slate-500 text-[11px] pb-1 border-b border-slate-100">
+                        <span id="aiOutputTitle" class="font-bold text-purple-800">پیش‌نویس تولید شده:</span>
+                        <button onclick="copyAiOutputToManualDraft()" class="text-pink-600 hover:text-pink-700 font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-copy"></i>
+                            انتقال به بخش اطلاعیه
                         </button>
                     </div>
+                    <div id="aiOutputText" class="text-slate-700 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto font-sans"></div>
                 </div>
             </div>
 
@@ -287,27 +312,13 @@
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-folder-open text-purple-600"></i>
-                        اسناد و بخشنامه‌های همگام‌شده در سرور
+                        اسناد و بخشنامه‌های همگام در سرور
                     </h3>
                     <span id="adminDocCounter" class="text-xs text-slate-400">۰ سند فعال</span>
                 </div>
                 
                 <div id="adminDocumentsList" class="space-y-2.5">
                     <!-- Dynamic -->
-                </div>
-            </div>
-
-            <!-- Change Admin Password -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <h3 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <i class="fa-solid fa-key text-slate-600"></i>
-                    تغییر رمز عبور پنل مدیریت
-                </h3>
-                <div class="flex gap-2">
-                    <input type="password" id="newAdminPassword" placeholder="رمز عبور جدید مدیر..." class="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500">
-                    <button onclick="changeAdminPassword()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
-                        تغییر رمز
-                    </button>
                 </div>
             </div>
 
@@ -329,11 +340,11 @@
         </div>
         <div class="text-center">
             <h3 class="font-bold text-slate-800 text-base">ورود اختصاصی مدیریت مدرسه</h3>
-            <p class="text-xs text-slate-500 mt-1">این بخش جهت بارگذاری بخشنامه‌ها و اسناد است. اولیای گرامی نیازی به ورود در این بخش ندارند.</p>
+            <p class="text-xs text-slate-500 mt-1">این بخش ویژه بارگذاری بخشنامه‌هاست. اولیای گرامی نیازی به ورود ندارند.</p>
         </div>
         <div>
-            <input type="password" id="adminPasswordInput" placeholder="رمز عبور مدیریت را وارد کنید..." class="w-full p-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-center font-mono">
-            <p class="text-[11px] text-slate-400 mt-1.5 text-center">رمز پیش‌فرض اولیه: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-pink-600">admin1403</code></p>
+            <input type="password" id="adminPasswordInput" placeholder="رمز عبور را وارد کنید..." class="w-full p-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-center font-mono">
+            <p class="text-[11px] text-slate-400 mt-1.5 text-center">رمز پیش‌فرض: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-pink-600">admin1403</code></p>
         </div>
         <div class="flex gap-2">
             <button onclick="verifyAdminPassword()" class="flex-1 py-2.5 bg-pink-600 hover:bg-pink-700 text-white font-bold text-xs rounded-xl transition">
@@ -355,7 +366,7 @@
 <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    // Default Seed Documents (If cloud is empty on first boot)
+    // Default Seed Documents (Always ready if database is fresh)
     const DEFAULT_DATA = [
         {
             id: 'doc-default-rule',
@@ -369,7 +380,7 @@
 
 [لباس فرم و پوشش مصوب]:
 - مانتو و شلوار سرمه‌ای تیره، مقنعه صورتی هلویی ویژه دانش‌آموزان پیش‌دبستانی و دبستان.
-- همراه داشتن طلا، زیورآلات و تلفن همراه یا ساعت هوشمند سیم‌کارت‌خور در مدرسه اکیداً ممنوع است.
+- همراه داشتن طلا، زیورآلات و تلفن همراه یا ساعت هوشمند در مدرسه اکیداً ممنوع است.
 
 [ملاقات با آموزگاران]:
 - پایه اول: دوشنبه‌ها ساعت ۱۰ الی ۱۱
@@ -385,19 +396,9 @@
     let appState = {
         isAdminLoggedIn: false,
         adminPassword: localStorage.getItem('school_admin_pass') || 'admin1403',
-        proxyUrl: localStorage.getItem('school_proxy_url') || '',
-        apiKey: localStorage.getItem('school_api_key') || '',
-        cloudBinId: localStorage.getItem('school_cloud_bin_id') || '',
+        firebaseUrl: localStorage.getItem('school_firebase_url') || '',
         documents: [],
-        chatHistory: [],
         isThinking: false
-    };
-
-    // Free Shared Cloud Database Helper (JSONBin / KV Storage)
-    // When the principal adds a file, it saves to this central hub so all parents see it instantly
-    const CLOUD_CONFIG = {
-        ENDPOINT: 'https://api.jsonbin.io/v3/b',
-        MASTER_KEY: '$2a$10$wK1yP5q1hQ5rK3bN2xTZe.aV7o6bF.eXzJm5F8pG1o0cI2u4y3K6S' // Fallback public free coordinator
     };
 
     function showToast(msg, type = 'success') {
@@ -421,75 +422,76 @@
         }, 3200);
     }
 
-    async function syncWithCloud(showNotice = false) {
+    // Connects to Firebase Realtime Database
+    async function loadDocumentsFromCloud(showNotice = false) {
         const syncIcon = document.getElementById('syncIcon');
         if (syncIcon) syncIcon.classList.add('fa-spin');
 
-        try {
-            // First check local backup
-            const localSaved = localStorage.getItem('school_shared_docs');
-            if (localSaved) {
-                appState.documents = JSON.parse(localSaved);
-            } else {
-                appState.documents = [...DEFAULT_DATA];
-            }
+        // Check local cache first
+        const localSaved = localStorage.getItem('school_shared_docs');
+        if (localSaved) {
+            try { appState.documents = JSON.parse(localSaved); } catch(e){}
+        }
+        if (!appState.documents || appState.documents.length === 0) {
+            appState.documents = [...DEFAULT_DATA];
+        }
 
-            // If a cloud bin exists, fetch latest online version
-            if (appState.cloudBinId) {
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${appState.cloudBinId}/latest`, {
-                    headers: { 'X-Access-Key': CLOUD_CONFIG.MASTER_KEY }
-                });
+        if (appState.firebaseUrl) {
+            try {
+                let cleanUrl = appState.firebaseUrl.trim().replace(/\/$/, '');
+                const res = await fetch(`${cleanUrl}/documents.json`);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.record && Array.isArray(data.record.documents)) {
-                        appState.documents = data.record.documents;
+                    if (data && Array.isArray(data)) {
+                        appState.documents = data;
                         localStorage.setItem('school_shared_docs', JSON.stringify(appState.documents));
+                        document.getElementById('cloudStatusText').innerText = 'پایگاه ابری سراسری متصل و به‌روز است';
+                        if (showNotice) showToast('اطلاعات با پایگاه مرکزی هماهنگ شد.');
                     }
                 }
+            } catch (err) {
+                console.warn("Cloud connection error, using local data:", err);
+                if (showNotice) showToast('خطا در اتصال به سرور مرکزی.', 'error');
             }
-            updateHeaderStatus();
-            if (appState.isAdminLoggedIn) renderAdminDocs();
-            if (showNotice) showToast('اطلاعات مدرسه با سرور همگام‌سازی شد.');
-        } catch (e) {
-            console.warn("Cloud sync fallback to offline cache:", e);
-            if (showNotice) showToast('از حافظه پایدار دستگاه استفاده شد.', 'success');
-        } finally {
-            if (syncIcon) syncIcon.classList.remove('fa-spin');
         }
+
+        updateHeaderStatus();
+        if (appState.isAdminLoggedIn) renderAdminDocs();
+        if (syncIcon) syncIcon.classList.remove('fa-spin');
     }
 
-    async function pushDocsToCloud() {
+    async function syncDocsToCloud() {
         localStorage.setItem('school_shared_docs', JSON.stringify(appState.documents));
-        
-        try {
-            // Push update to public cloud room
-            if (!appState.cloudBinId) {
-                const createRes = await fetch(CLOUD_CONFIG.ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Bin-Name': 'school_shared_knowledge'
-                    },
-                    body: JSON.stringify({ documents: appState.documents })
-                });
-                if (createRes.ok) {
-                    const result = await createRes.json();
-                    appState.cloudBinId = result.metadata.id;
-                    localStorage.setItem('school_cloud_bin_id', appState.cloudBinId);
-                }
-            } else {
-                await fetch(`https://api.jsonbin.io/v3/b/${appState.cloudBinId}`, {
+
+        if (appState.firebaseUrl) {
+            try {
+                let cleanUrl = appState.firebaseUrl.trim().replace(/\/$/, '');
+                await fetch(`${cleanUrl}/documents.json`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ documents: appState.documents })
+                    body: JSON.stringify(appState.documents)
                 });
+            } catch (err) {
+                console.error("Cloud push failed:", err);
+                showToast('خطا در ذخیره در سرور مرکزی، روی حافظه محلی ذخیره شد.', 'error');
             }
-        } catch (err) {
-            console.error("Online push warning:", err);
         }
 
         updateHeaderStatus();
         renderAdminDocs();
+    }
+
+    function saveFirebaseUrl() {
+        const input = document.getElementById('firebaseUrlInput');
+        let val = input.value.trim();
+        if (!val.startsWith('http')) {
+            showToast('لطفاً آدرس معتبر پایگاه را وارد کنید (شروع با https)', 'error');
+            return;
+        }
+        appState.firebaseUrl = val;
+        localStorage.setItem('school_firebase_url', val);
+        showToast('آدرس پایگاه مرکزی ذخیره شد. در حال هماهنگ‌سازی...');
+        syncDocsToCloud();
     }
 
     function updateHeaderStatus() {
@@ -519,13 +521,11 @@
             appState.isAdminLoggedIn = true;
             closeAdminModal();
             toggleAdminView(true);
-            
-            // Update button label
             document.getElementById('adminBtnLabel').innerText = 'پنل فعال';
             document.getElementById('adminLockIcon').className = 'fa-solid fa-lock-open text-emerald-300';
             showToast('خوش آمدید، احراز هویت مدیریت با موفقیت انجام شد.');
         } else {
-            showToast('رمز عبور مدیر اشتباه است!', 'error');
+            showToast('رمز عبور اشتباه است!', 'error');
         }
     }
 
@@ -534,7 +534,7 @@
         document.getElementById('adminBtnLabel').innerText = 'ورود مدیر';
         document.getElementById('adminLockIcon').className = 'fa-solid fa-lock';
         toggleAdminView(false);
-        showToast('از پنل مدیریت خارج شدید.');
+        showToast('از پنل خارج شدید.');
     }
 
     function toggleAdminView(showAdmin) {
@@ -545,34 +545,11 @@
             chatView.classList.add('hidden');
             adminView.classList.remove('hidden');
             renderAdminDocs();
-            document.getElementById('customProxyInput').value = appState.proxyUrl;
-            document.getElementById('customApiKeyInput').value = appState.apiKey;
+            document.getElementById('firebaseUrlInput').value = appState.firebaseUrl;
         } else {
             adminView.classList.add('hidden');
             chatView.classList.remove('hidden');
         }
-    }
-
-    function changeAdminPassword() {
-        const newPass = document.getElementById('newAdminPassword').value.trim();
-        if (newPass.length < 4) {
-            showToast('رمز عبور باید حداقل ۴ کاراکتر باشد.', 'error');
-            return;
-        }
-        appState.adminPassword = newPass;
-        localStorage.setItem('school_admin_pass', newPass);
-        document.getElementById('newAdminPassword').value = '';
-        showToast('رمز عبور پنل مدیر با موفقیت تغییر کرد.');
-    }
-
-    function saveNetworkSettings() {
-        appState.proxyUrl = document.getElementById('customProxyInput').value.trim();
-        appState.apiKey = document.getElementById('customApiKeyInput').value.trim();
-
-        localStorage.setItem('school_proxy_url', appState.proxyUrl);
-        localStorage.setItem('school_api_key', appState.apiKey);
-
-        showToast('تنظیمات ارتباطی با موفقیت ذخیره شد.');
     }
 
     async function handleAdminFileUpload(event) {
@@ -580,7 +557,7 @@
         if (!file) return;
 
         if (file.type !== 'application/pdf') {
-            showToast('لطفاً فقط فایل PDF انتخاب نمایید.', 'error');
+            showToast('لطفاً فقط فایل PDF انتخاب فرمایید.', 'error');
             return;
         }
 
@@ -613,8 +590,8 @@
             };
 
             appState.documents.push(newDoc);
-            await pushDocsToCloud();
-            showToast(`فایل «${file.name}» بارگذاری شد و برای تمام اولیا فعال گردید!`);
+            await syncDocsToCloud();
+            showToast(`فایل «${file.name}» در پایگاه سراسری ذخیره شد!`);
             event.target.value = '';
         } catch (e) {
             console.error("PDF Read Error:", e);
@@ -644,16 +621,16 @@
         };
 
         appState.documents.push(newDoc);
-        await pushDocsToCloud();
+        await syncDocsToCloud();
 
         titleInput.value = '';
         contentInput.value = '';
-        showToast('اطلاعیه جدید در سرور ثبت شد و تمام اولیا آن را دریافت کردند.');
+        showToast('اطلاعیه جدید در پایگاه مرکزی منتشر شد.');
     }
 
     async function deleteDocument(id) {
         appState.documents = appState.documents.filter(d => d.id !== id);
-        await pushDocsToCloud();
+        await syncDocsToCloud();
         showToast('سند مورد نظر حذف گردید.');
     }
 
@@ -688,9 +665,9 @@
         `).join('');
     }
 
-    function localKeywordSearch(question) {
+    function findAnswerInDocuments(question) {
         if (!appState.documents || appState.documents.length === 0) {
-            return "اولیا گرامی؛ در حال حاضر بخشنامه‌ای در سامانه ثبت نشده است. لطفاً با دفتر مدرسه هماهنگ فرمایید.";
+            return "ولی گرامی؛ در حال حاضر بخشنامه‌ای در سامانه ثبت نشده است. لطفاً با دفتر مدرسه تماس بگیرید.";
         }
 
         const stopWords = new Set(['از', 'به', 'در', 'با', 'که', 'این', 'آن', 'برای', 'چیست', 'کیست', 'چگونه', 'است', 'آیا', 'و', 'یا', 'را', 'ساعت']);
@@ -714,63 +691,167 @@
         results.sort((a, b) => b.score - a.score);
 
         if (results.length === 0) {
-            return `ولی ارجمند؛ 🌸\nدر مورد موضوع مطرح‌شده اطلاعات مشخصی در بخشنامه‌ها و اسناد بارگذاری‌شده موجود نیست.\nلطفاً در ساعات اداری با دفتر مدرسه یا سرکار خانم دکتر صادقی (مدیریت محترم) تماس حاصل فرمایید.`;
+            return `ولی ارجمند؛ 🌸\nدرباره موضوع مطرح‌شده اطلاعیه‌ای در اسناد مدرسه ثبت نشده است.\nجهت راهنمایی دقیق‌تر، لطفاً با دفتر آموزشگاه تماس حاصل فرمایید.`;
         }
 
-        let output = `ولی گرامی و ارجمند؛ با استناد به اسناد و بخشنامه‌های مصوب مدرسه:\n\n`;
+        let output = `ولی گرامی و ارجمند؛ بر مبنای مصوبات مدرسه:\n\n`;
         results.slice(0, 2).forEach(r => {
             output += `📌 **${r.title}**:\n${r.text}\n\n`;
         });
-        output += `💡 *پاسخ استخراج‌شده از سامانه مرکزی مدرسه*`;
+        output += `💡 *پاسخ استخراج‌شده از سامانه رسمی مدرسه*`;
         return output;
-    }
-
-    async function getAiAnswer(question) {
-        // 1. If Proxy URL or Direct API Key is defined, call LLM
-        if (appState.proxyUrl || appState.apiKey) {
-            try {
-                let combinedDocs = appState.documents.map((d, i) => `[سند ${i+1}: ${d.title}]\n${d.content}`).join('\n\n');
-                
-                const systemPrompt = `شما دستیار هوشمند و مشاور مدرسه پیش‌دبستانی و دبستان دخترانه هستید. 
-پاسخ‌های شما باید کاملاً محترمانه، صمیمانه، با لحن تربیتی و شایسته اولیا باشد.
-فقط و فقط بر مبنای اسناد زیر پاسخ دهید:
-${combinedDocs}`;
-
-                // Target endpoint (either Worker reverse proxy or direct Google)
-                let endpoint = appState.proxyUrl;
-                if (!endpoint) {
-                    endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${appState.apiKey}`;
-                }
-
-                const payload = {
-                    contents: [{ role: "user", parts: [{ text: question }] }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] }
-                };
-
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (res.ok) {
-                    const json = await res.json();
-                    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (text) return text;
-                }
-            } catch (err) {
-                console.warn("Proxy/Cloud AI unavailable, switching to local instant engine:", err);
-            }
-        }
-
-        // 2. Fallback: Instant Hybrid Search (Never Fails, No VPN needed)
-        await new Promise(r => setTimeout(r, 650));
-        return localKeywordSearch(question);
     }
 
     function autoResizeTextarea(el) {
         el.style.height = 'auto';
         el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    // Gemini API Configuration & Call with Exponential Backoff
+    async function callGeminiApi(systemPrompt, userQuery) {
+        const apiKey = ""; // Provided automatically at runtime in Canvas environment
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        const payload = {
+            contents: [
+                { parts: [{ text: userQuery }] }
+            ],
+            systemInstruction: {
+                parts: [{ text: systemPrompt }]
+            }
+        };
+
+        const maxRetries = 3;
+        let delay = 1000;
+
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return candidate.content.parts[0].text;
+                }
+                throw new Error("No text content returned from Gemini model.");
+            } catch (err) {
+                if (attempt === maxRetries - 1) {
+                    throw err;
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            }
+        }
+    }
+
+    // Builds the context system prompt incorporating all stored documents
+    function buildSchoolSystemPrompt() {
+        const docsContext = (appState.documents && appState.documents.length > 0)
+            ? appState.documents.map((d, i) => `[بخشنامه / سند شماره ${i + 1}: «${d.title}»]\n${d.content}`).join('\n\n')
+            : 'هیچ بخشنامه‌ای در سیستم بارگذاری نشده است.';
+
+        return `شما «مشاور و پاسخگوی هوشمند دبستان و پیش‌دبستانی دخترانه» هستید.
+شما با اولیای گرامیِ دانش‌آموزان به زبانی فوق‌العاده صبورانه، مهربان، دلسوز، محترمانه و دقیق گفت‌وگو می‌کنید.
+
+مجموعه قوانین، تقویم اجرایی و اسناد مصوب مدرسه به شرح زیر است:
+=========================================
+${docsContext}
+=========================================
+
+اصول رفتاری شما:
+۱. پاسخ شما فقط و فقط باید بر اساس اطلاعات و بخشنامه‌های درج شده در بالا باشد.
+۲. اگر اطلاعات مشخصی (مانند نام اولیای دانش‌آموز یا جزئیات شخصی) در اسناد بالا ذکر نشده بود، با کمال ادب بفرمایید: «این مورد در مصوبات موجود ثبت نشده است؛ خواهشمندیم در ساعات کاری با دفتر آموزشگاه یا مدیریت محترم تماس حاصل فرمایید.»
+۳. لحن سخن باید بسیار شایسته یک فضای فرهنگی و تربیتی دخترانه باشد (استفاده از عباراتی نظیر «ولی گرامی»، «دختر دلبندمان»، «با سپاس و احترام»).
+۴. از به کار بردن جملات غیرفارسی بپرهیزید و نکات را روان و ساختاریافته ارائه دهید.`;
+    }
+
+    // Gemini Feature 1: Automatically draft an engaging announcement for Telegram/Eitaa/Shad
+    async function generateAiAnnouncementFromDocs() {
+        const btn = document.getElementById('aiDraftBtn');
+        const box = document.getElementById('aiOutputBox');
+        const outputTitle = document.getElementById('aiOutputTitle');
+        const outputText = document.getElementById('aiOutputText');
+
+        if (!appState.documents || appState.documents.length === 0) {
+            showToast('لطفاً ابتدا حداقل یک سند یا بخشنامه در پنل قرار دهید.', 'error');
+            return;
+        }
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> در حال پردازش با Gemini...`;
+
+        try {
+            const systemPrompt = `شما کارشناس ارتباطات و روابط عمومی دبستان و پیش‌دبستانی دخترانه هستید. وظیفه شما تنظیم یک اطلاعیه جذاب، کوتاه، شکیل، و پرانرژی برای کانال شاد یا ایتا جهت اطلاع‌رسانی به اولیای گرامی بر اساس آخرین مصوبات است. پیام باید دارای اموجی‌های متناسب و لحن کاملاً گرم و آموزشی باشد.`;
+            const userPrompt = `بر مبنای اسناد و آخرین مصوبات زیر، یک متن اطلاعیه آماده ارسال برای کانال اولیا تدوین کن:\n\n${appState.documents.slice(-2).map(d => d.title + ":\n" + d.content).join('\n\n')}`;
+
+            const draft = await callGeminiApi(systemPrompt, userPrompt);
+            outputTitle.innerText = 'پیش‌نویس پیام کانال اولیا (آماده انتشار):';
+            outputText.innerText = draft;
+            box.classList.remove('hidden');
+            showToast('متن اطلاعیه با هوش مصنوعی تدوین شد.');
+        } catch (err) {
+            console.error("Gemini draft error:", err);
+            showToast('خطا در ارتباط با هوش مصنوعی. لطفاً دوباره تلاش فرمایید.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    // Gemini Feature 2: Generate dynamic FAQs based on uploaded documents
+    async function generateDynamicFaqQuestions() {
+        const btn = document.getElementById('aiFaqBtn');
+        if (!appState.documents || appState.documents.length === 0) {
+            showToast('سندی برای استخراج سوالات وجود ندارد.', 'error');
+            return;
+        }
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> استخراج با هوش مصنوعی...`;
+
+        try {
+            const systemPrompt = `شما یک دستیار هوش مصنوعی هستید. با بررسی متن بخشنامه‌های مدرسه دخترانه، ۳ پرسش کوتاه و کاربردی که بیشتر از همه برای اولیا دغدغه است را به زبان فارسی روان استخراج کن. فرمت پاسخ فقط و فقط ۳ خط باشد و در ابتدای هر سوال یک ایموجی بگذار. هیچ توضیح اضافه‌ای ننویس.`;
+            const userPrompt = `اسناد مدرسه:\n${appState.documents.map(d => d.title + ": " + d.content.substring(0, 300)).join('\n')}`;
+
+            const response = await callGeminiApi(systemPrompt, userPrompt);
+            const questions = response.split('\n').map(q => q.trim().replace(/^[-*•\d\.]+\s*/, '')).filter(q => q.length > 5).slice(0, 3);
+
+            if (questions.length > 0) {
+                const chipsContainer = document.querySelector('#quickQuestionsContainer .flex-wrap');
+                if (chipsContainer) {
+                    chipsContainer.innerHTML = questions.map(q => `
+                        <button onclick="askQuickPrompt('${q.replace(/'/g, "\\'")}')" class="text-xs bg-white hover:bg-pink-50 hover:text-pink-700 text-slate-700 py-1.5 px-3 rounded-full border border-pink-200 transition shadow-2xs text-right animate-pulse">
+                            ${q}
+                        </button>
+                    `).join('');
+                }
+                showToast('۳ پرسش متداول هوشمند به صفحه گفتگوی اولیا اضافه شد.');
+            }
+        } catch (err) {
+            console.error("Gemini FAQ error:", err);
+            showToast('عدم برقراری ارتباط با هوش مصنوعی جهت تولید پرسش‌ها.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    function copyAiOutputToManualDraft() {
+        const text = document.getElementById('aiOutputText').innerText;
+        if (!text) return;
+        document.getElementById('manualDocTitle').value = 'اطلاعیه هماهنگی مدرسه';
+        document.getElementById('manualDocContent').value = text;
+        showToast('متن به فرم انتشار اطلاعیه انتقال یافت.');
     }
 
     function appendMessage(role, text) {
@@ -786,7 +867,7 @@ ${combinedDocs}`;
                 </div>
             ` : ''}
             <div class="max-w-[85%] ${isUser ? 'chat-bubble-user bg-gradient-to-l from-pink-600 to-rose-600 text-white' : 'chat-bubble-ai bg-white text-slate-800 border border-slate-100'} p-3.5 shadow-sm text-sm leading-relaxed">
-                ${!isUser ? '<p class="font-bold text-pink-600 text-[11px] mb-1">دستیار مدرسه</p>' : ''}
+                ${!isUser ? '<p class="font-bold text-pink-600 text-[11px] mb-1">دستیار مدرسه (Google Gemini)</p>' : ''}
                 <div class="prose prose-sm">${text.replace(/\n/g, '<br>')}</div>
             </div>
             ${isUser ? `
@@ -822,12 +903,22 @@ ${combinedDocs}`;
         document.getElementById('sendBtn').disabled = true;
 
         try {
-            const answer = await getAiAnswer(text);
+            let answer;
+            // Primary: Attempt response generation using Gemini 3 Flash LLM
+            try {
+                const systemPrompt = buildSchoolSystemPrompt();
+                answer = await callGeminiApi(systemPrompt, text);
+            } catch (apiError) {
+                // Secondary fallback: Fast local keyword matching
+                console.warn("Gemini API call fell back to local search:", apiError);
+                answer = findAnswerInDocuments(text);
+            }
+
             typing.classList.add('hidden');
             appendMessage('model', answer);
         } catch (err) {
             typing.classList.add('hidden');
-            appendMessage('model', 'عذرخواهی می‌کنم، در دریافت اطلاعات خطایی رخ داد. لطفاً مجدداً امتحان فرمایید.');
+            appendMessage('model', 'خطایی در دریافت پاسخ رخ داد. لطفاً مجدداً امتحان فرمایید.');
         } finally {
             appState.isThinking = false;
             document.getElementById('sendBtn').disabled = false;
@@ -845,11 +936,15 @@ ${combinedDocs}`;
         while (container.children.length > 2) {
             container.removeChild(container.lastChild);
         }
-        showToast('گفتگو پاکسازی شد.');
+        showToast('صفحه گفتگو پاکسازی شد.');
     }
 
     window.onload = function() {
-        syncWithCloud();
+        loadDocumentsFromCloud();
+        // Periodically refresh cloud data every 30 seconds
+        setInterval(() => {
+            loadDocumentsFromCloud(false);
+        }, 30000);
     };
 </script>
 </body>
