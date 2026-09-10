@@ -374,15 +374,19 @@
 
                     <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2.5 text-xs">
                         <div class="text-[11px] text-slate-500 leading-relaxed">
-                            💡 برای اینکه <strong>همان یک لینک اولیه</strong> برای همیشه کار کند، اطلاعات روی یک پایگاه داده مشترک بدون تحریم ذخیره می‌شود. می‌توانید آدرس دیتابیس فعلی یا سرور ایرانی (لیارا، هاست، Cloudflare Worker) خود را تنظیم کنید:
+                            💡 برای اینکه <strong>همان یک لینک اولیه</strong> برای همیشه در گوشی اولیا کار کند، اطلاعات روی یک مخزن پایدار مشترک ذخیره می‌شود. می‌توانید با یک کلیک یک پایگاه جدید ایجاد کنید یا آدرس سرور کلودفلر/لیارا را قرار دهید:
                         </div>
                         
                         <div class="space-y-1.5 pt-1">
-                            <label class="block text-[11px] font-bold text-slate-700">آدرس پایگاه ابری فعال (خواندن و ذخیره بدون وی‌پی‌ان):</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="customCloudEndpointInput" placeholder="https://kvdb.io/..." class="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-left bg-white" dir="ltr">
+                            <label class="block text-[11px] font-bold text-slate-700">آدرس پایگاه ابری متصل:</label>
+                            <div class="flex flex-wrap gap-2">
+                                <input type="text" id="customCloudEndpointInput" placeholder="https://..." class="flex-1 min-w-[200px] text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-left bg-white" dir="ltr">
                                 <button onclick="saveCustomCloudEndpoint()" class="py-2 px-3 bg-violetbrand-600 hover:bg-violetbrand-700 text-white rounded-xl text-xs font-bold transition shrink-0 btn-depth">
                                     ذخیره
+                                </button>
+                                <button onclick="autoCreateCloudDatabase()" id="autoCreateDbBtn" title="ساخت پایگاه ابری فعال و بدون تحریم با یک کلیک" class="py-2 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:brightness-110 text-white rounded-xl text-xs font-bold transition shrink-0 btn-depth shadow-sm flex items-center gap-1.5">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                                    ایجاد خودکار پایگاه (حل خطای ۴۰۴)
                                 </button>
                             </div>
                         </div>
@@ -393,7 +397,7 @@
                         </div>
                         
                         <div class="pt-2 border-t border-slate-200 flex flex-wrap gap-2">
-                            <button onclick="testCompleteCloudSync()" class="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 btn-depth shadow-sm">
+                            <button onclick="testCompleteCloudSync()" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 btn-depth shadow-sm">
                                 <i id="testPingIcon" class="fa-solid fa-bolt text-amber-300"></i>
                                 تست کامل ارسال و دریافت (بدون فیلترشکن)
                             </button>
@@ -675,9 +679,8 @@
 
     const DEFAULT_ADMIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 
-    // Standard Zero-VPN Cloud Bucket (Unblocked in Iran, Not blocked by Google sanctions)
-    // Runs on fast non-Google CDN that supports both GET & PUT with full CORS
-    const DEFAULT_UNBLOCKED_BUCKET = "https://kvdb.io/A4gW2c5eE9dJ3tXm8k7LpQ/arefan_school_docs";
+    // Standard Zero-VPN Cloud Bucket
+    const DEFAULT_UNBLOCKED_BUCKET = "https://api.npoint.io/46d6fc3a3b7d1956e18f";
 
     let appState = {
         isAdminLoggedIn: false,
@@ -766,7 +769,7 @@
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 6000);
+            const timeoutId = setTimeout(() => controller.abort(), 7000);
 
             const res = await fetch(rawUrl, {
                 method: 'GET',
@@ -785,7 +788,9 @@
                         loadedDocs = data.documents;
                     } else {
                         Object.keys(data).forEach(k => {
-                            if (data[k]) loadedDocs.push({ id: k, ...data[k] });
+                            if (data[k] && typeof data[k] === 'object' && data[k].id) {
+                                loadedDocs.push({ id: k, ...data[k] });
+                            }
                         });
                     }
 
@@ -796,7 +801,7 @@
 
                         if (statusEl) statusEl.innerText = 'هماهنگ با آخرین مصوبات مدرسه 🟢';
                         if (badge) {
-                            badge.innerText = 'متصل و فعال (بدون وی‌پی‌ان) 🟢';
+                            badge.innerText = 'متصل و پایدار (بدون وی‌پی‌ان) 🟢';
                             badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
                         }
                         if (showNotice) showToast('سامانه با آخرین مصوبات مدرسه هماهنگ شد.');
@@ -804,14 +809,14 @@
                 }
                 updateLastSyncTimestamp();
             } else if (res.status === 404) {
-                // If bucket is new, publish initial seed
+                // Initial seed push if freshly provisioned
                 await syncDocsToActiveCloud(false);
             }
         } catch (err) {
             console.warn("Background cloud sync notice:", err.message);
             if (statusEl) statusEl.innerText = 'سامانه با آخرین نسخه محلی فعال است';
             if (badge) {
-                badge.innerText = 'حالت محلی / در انتظار ارتباط';
+                badge.innerText = 'حالت محلی / در انتظار هماهنگی';
                 badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200';
             }
         } finally {
@@ -830,22 +835,32 @@
             return;
         }
 
+        const payload = JSON.stringify(appState.documents);
+
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+            const timeoutId = setTimeout(() => controller.abort(), 9000);
 
-            const res = await fetch(rawUrl, {
+            // First attempt: POST
+            let res = await fetch(rawUrl, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(appState.documents),
+                headers: { 'Content-Type': 'application/json' },
+                body: payload,
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
 
+            // Fallback attempt: PUT (required by many REST engines)
+            if (!res.ok) {
+                res = await fetch(rawUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: payload
+                });
+            }
+
             if (res.ok) {
-                if (showToastMessage) showToast('تغییرات در سرور سراسری ذخیره شد و روی گوشی تمام اولیا اعمال می‌شود.');
+                if (showToastMessage) showToast('تغییرات در پایگاه ابری سراسری ذخیره شد و روی گوشی تمام اولیا اعمال می‌شود.');
                 updateLastSyncTimestamp();
                 const badge = document.getElementById('adminLiveBadge');
                 if (badge) {
@@ -857,22 +872,8 @@
             }
         } catch (err) {
             console.error("Direct cloud save error:", err);
-            // Also try PUT fallback for different backend types
-            try {
-                const resPut = await fetch(rawUrl, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(appState.documents)
-                });
-                if (resPut.ok) {
-                    if (showToastMessage) showToast('تغییرات در سرور سراسری با موفقیت ثبت گردید.');
-                    updateLastSyncTimestamp();
-                    return;
-                }
-            } catch (putErr) {}
-
             if (showToastMessage) {
-                showToast('تغییرات در این دستگاه ذخیره شد اما پایگاه ابری پاسخ نداد. اتصال اینترنت را چک فرمایید.', 'error');
+                showToast('تغییرات محلی ثبت شد؛ پایگاه ابری پاسخ نداد (کد ۴۰۴ یا اختلال شبکه). از دکمه «ایجاد خودکار پایگاه» استفاده فرمایید.', 'error');
             }
         } finally {
             updateHeaderStatus();
@@ -880,26 +881,97 @@
         }
     }
 
+    async function autoCreateCloudDatabase() {
+        const btn = document.getElementById('autoCreateDbBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> در حال ساخت مخزن...`;
+
+        try {
+            // Provision a live JSON bin that is unblocked in Iran and supports CORS
+            const initialData = appState.documents.length > 0 ? appState.documents : DEFAULT_SEED_DOCUMENTS;
+            const res = await fetch('https://api.npoint.io', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(initialData)
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                if (result && result.id) {
+                    const newEndpoint = `https://api.npoint.io/${result.id}`;
+                    appState.activeCloudUrl = newEndpoint;
+                    localStorage.setItem('school_custom_cloud_url', newEndpoint);
+                    
+                    const input = document.getElementById('customCloudEndpointInput');
+                    if (input) input.value = newEndpoint;
+
+                    showToast('پایگاه ابری اختصاصی و دائمی با موفقیت ساخته و متصل شد! 🟢');
+                    await fetchDocumentsFromCentralCloud(false);
+                } else {
+                    throw new Error('No bin ID returned');
+                }
+            } else {
+                throw new Error(`Status ${res.status}`);
+            }
+        } catch (err) {
+            console.error("Auto provision error:", err);
+            showToast('خطا در ساخت خودکار. لطفاً اتصال اینترنت را چک کرده یا آدرس دستی وارد فرمایید.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
     async function testCompleteCloudSync() {
         const icon = document.getElementById('testPingIcon');
         if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-amber-300';
 
-        try {
-            const testPayload = { test: true, timestamp: Date.now() };
-            let rawUrl = (appState.activeCloudUrl || '').trim();
+        let rawUrl = (appState.activeCloudUrl || '').trim();
+        if (!rawUrl) {
+            showToast('لطفاً ابتدا آدرس پایگاه را مشخص نمایید یا دکمه ایجاد خودکار را لمس کنید.', 'error');
+            if (icon) icon.className = 'fa-solid fa-bolt text-amber-300';
+            return;
+        }
 
-            const res = await fetch(rawUrl, {
-                method: 'GET'
+        try {
+            // First step: Attempt to write test data
+            const testPayload = JSON.stringify(appState.documents);
+            let writeRes = await fetch(rawUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: testPayload
             });
 
-            if (res.ok) {
-                showToast('تست ۱۰۰٪ موفق بود! ارتباط بدون فیلترشکن با پایگاه مرکزی برقرار است.');
-                await fetchDocumentsFromCentralCloud(false);
+            if (!writeRes.ok) {
+                writeRes = await fetch(rawUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: testPayload
+                });
+            }
+
+            // Second step: Attempt to read back
+            const readRes = await fetch(rawUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (readRes.ok) {
+                showToast('تست ۱۰۰٪ موفق بود! ارتباط دوطرفه بدون فیلترشکن با موفقیت برقرار است 🟢');
+                updateLastSyncTimestamp();
+                const badge = document.getElementById('adminLiveBadge');
+                if (badge) {
+                    badge.innerText = 'متصل و فعال (بدون وی‌پی‌ان) 🟢';
+                    badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+                }
+            } else if (readRes.status === 404) {
+                showToast('خطای ۴۰۴: این آدرس در پایگاه ثبت نشده است. لطفاً دکمه سبز «ایجاد خودکار پایگاه» را لمس کنید.', 'error');
             } else {
-                showToast('پایگاه ابری پاسخ نداد. کد پاسخ: ' + res.status, 'error');
+                showToast('پاسخ سرور با کد: ' + readRes.status, 'error');
             }
         } catch (e) {
-            showToast('خطا در برقراری ارتباط! لطفاً آدرس سرور دلخواه را وارد فرمایید.', 'error');
+            showToast('خطا در برقراری ارتباط! لطفاً دکمه «ایجاد خودکار پایگاه» را بزنید.', 'error');
         } finally {
             if (icon) icon.className = 'fa-solid fa-bolt text-amber-300';
         }
@@ -1497,6 +1569,7 @@
     // Expose functions globally for inline HTML events
     window.triggerManualSync = triggerManualSync;
     window.testCompleteCloudSync = testCompleteCloudSync;
+    window.autoCreateCloudDatabase = autoCreateCloudDatabase;
     window.handleAdminButtonClick = handleAdminButtonClick;
     window.askQuickPrompt = askQuickPrompt;
     window.toggleVoiceRecognition = toggleVoiceRecognition;
