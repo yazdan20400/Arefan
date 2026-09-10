@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>پیش‌دبستانی و دبستان دخترانه عارفان توس | سامانه پاسخگوی هوشمند</title>
+    
+    <!-- Google Fonts: Vazirmatn -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- PDF.js for Client-Side Document Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rosebrand: {
+                            50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af',
+                            400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c',
+                            800: '#9f1239', 900: '#881337',
+                        },
+                        violetbrand: {
+                            50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd',
+                            400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9',
+                            800: '#5b21b6', 900: '#4c1d95',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 20px 40px -15px rgba(225, 29, 72, 0.12), 0 0 25px rgba(255, 255, 255, 0.6) inset',
+                        'card-3d': '0 12px 32px -8px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(225, 29, 72, 0.06)',
+                        'btn-3d': '0 6px 20px -3px rgba(225, 29, 72, 0.35), 0 -2px 0 rgba(0, 0, 0, 0.15) inset',
+                        'inner-glow': 'inset 0 1px 2px rgba(255, 255, 255, 0.8), inset 0 -1px 2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #0b0f19;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .bubble-ai {
+            border-radius: 1.5rem 1.5rem 1.5rem 0.35rem;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .bubble-user {
+            border-radius: 1.5rem 1.5rem 0.35rem 1.5rem;
+            box-shadow: 0 6px 20px -3px rgba(225, 29, 72, 0.28);
+        }
+
+        .btn-depth {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-depth:hover { transform: translateY(-2px); }
+        .btn-depth:active { transform: translateY(1px); }
+
+        .ambient-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(244, 63, 94, 0.15), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.18), transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(251, 113, 133, 0.08), transparent 55%);
+        }
+
+        .typing-dot {
+            animation: dotBounce 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes dotBounce {
+            0%, 80%, 100% { transform: scale(0.3); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(203, 213, 225, 0.8); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 1); }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex items-center justify-center p-0 md:p-5 relative selection:bg-rosebrand-500 selection:text-white">
+
+    <div id="threejs-canvas-container" class="fixed inset-0 z-0 pointer-events-auto opacity-70"></div>
+    <div class="ambient-mesh"></div>
+
+    <div class="w-full max-w-lg md:max-w-2xl h-[100dvh] md:h-[94vh] glass-panel md:rounded-[2.5rem] shadow-glass flex flex-col overflow-hidden relative z-10 border border-white/80 transition-all duration-300">
+        
+        <header class="relative px-5 py-3.5 bg-gradient-to-r from-rosebrand-600/95 via-rose-500/90 to-violetbrand-600/95 text-white backdrop-blur-xl border-b border-white/20 shadow-md flex items-center justify-between shrink-0 select-none z-20">
+            <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none"></div>
+
+            <div class="flex items-center gap-3 relative z-10">
+                <div class="relative group cursor-pointer">
+                    <div class="w-12 h-12 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center text-xl shadow-inner border border-white/40 transform group-hover:rotate-6 transition-transform duration-300">
+                        <i class="fa-solid fa-graduation-cap text-amber-300 drop-shadow-md"></i>
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 border-2 border-white rounded-full animate-pulse shadow-sm" title="سامانه برخط"></span>
+                </div>
+
+                <div>
+                    <h1 class="font-extrabold text-sm sm:text-base leading-tight tracking-tight text-white drop-shadow-xs flex items-center gap-2">
+                        پیش‌دبستانی و دبستان دخترانه عارفان توس
+                    </h1>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-semibold text-rose-50 border border-white/25">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            پاسخگوی هوشمند اولیا
+                        </span>
+                        <span class="text-[10px] text-rose-100 hidden sm:inline-block">نسخه تعاملی اولیا</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 relative z-10">
+                <button onclick="fetchDocsFromCloud(true)" title="به‌روزرسانی لحظه‌ای اطلاعات" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center transition border border-white/20 btn-depth">
+                    <i id="syncIcon" class="fa-solid fa-arrows-rotate text-xs"></i>
+                </button>
+                
+                <button onclick="handleAdminButtonClick()" id="adminHeaderBtn" class="bg-white/20 hover:bg-white/35 active:scale-95 transition-all text-xs font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 backdrop-blur-md border border-white/30 shadow-btn-3d btn-depth">
+                    <i class="fa-solid fa-shield-halved text-amber-300" id="adminLockIcon"></i>
+                    <span id="adminBtnLabel">ورود مدیر</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="bg-gradient-to-r from-rosebrand-50/90 via-pink-50/80 to-violetbrand-50/90 border-b border-rosebrand-100/60 px-5 py-2 text-[11px] text-slate-600 flex items-center justify-between shrink-0 backdrop-blur-md">
+            <div class="flex items-center gap-2 truncate">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rosebrand-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-rosebrand-500"></span>
+                </span>
+                <span class="truncate font-medium text-slate-700" id="cloudStatusText">اتصال ابری در حال آماده‌سازی...</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span id="docCountBadge" class="bg-white/90 text-rosebrand-700 border border-rosebrand-200 px-3 py-0.5 rounded-full font-bold text-[11px] shadow-2xs">
+                    درحال بارگذاری...
+                </span>
+            </div>
+        </div>
+
+        <main class="flex-1 overflow-hidden relative flex flex-col bg-slate-50/60 backdrop-blur-md">
+
+            <!-- VIEW 1: PARENTS CHAT -->
+            <div id="chatView" class="flex-1 flex flex-col h-full">
+                <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 md:p-5 space-y-4">
+                    <div class="relative overflow-hidden rounded-3xl p-4 md:p-5 bg-gradient-to-br from-white via-rosebrand-50/40 to-violetbrand-50/50 border border-white shadow-card-3d">
+                        <div class="absolute -left-6 -bottom-6 w-24 h-24 bg-rosebrand-200/40 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="flex items-start gap-3.5 relative z-10">
+                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rosebrand-500 to-violetbrand-600 text-white flex items-center justify-center shrink-0 shadow-btn-3d text-lg">
+                                <i class="fa-solid fa-sparkles"></i>
+                            </div>
+                            <div class="space-y-1.5 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-extrabold text-rosebrand-600 text-xs sm:text-sm">دستیار هوشمند امور اولیا و نوآموزان 🌸</span>
+                                    <span class="text-[10px] bg-rosebrand-100 text-rosebrand-700 px-2 py-0.5 rounded-full font-semibold">پایگاه مصوبات</span>
+                                </div>
+                                <p>
+                                    سلام و احترام خدمت اولیای ارجمند و همراهان همیشگی دبستان و پیش‌دبستانی دخترانه عارفان توس.<br>
+                                    تمامی آیین‌نامه‌ها، برنامه کلاسی، بخشنامه‌های اداری و تقویم پرورشی توسط مدیریت در این سامانه بارگذاری شده است. پرسش خود را بفرمایید تا فوراً پاسخگو باشم.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="quickQuestionsContainer" class="pt-1">
+                        <div class="flex items-center justify-between mb-2.5 px-1">
+                            <p class="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                                پرسش‌های متداول و دسترسی سریع اولیا:
+                            </p>
+                            <span class="text-[10px] text-slate-400">یک لمس برای پاسخ فوری</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="quickQuestionsChips">
+                            <button onclick="askQuickPrompt('ساعت شروع، صبحگاه و پایان کلاس‌ها در پیش‌دبستانی و دبستان چگونه است؟')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                                <div class="flex items-center gap-2.5 text-xs font-medium">
+                                    <span class="w-8 h-8 rounded-xl bg-rosebrand-100/80 text-rosebrand-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">⏰</span>
+                                    <span>ساعت ورود، صبحگاه و خروج کلاس‌ها</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-rosebrand-500 group-hover:-translate-x-1 transition-all"></i>
+                            </button>
+
+                            <button onclick="askQuickPrompt('قوانین مربوط به غیبت دانش‌آموز و لباس فرم چیست؟')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                                <div class="flex items-center gap-2.5 text-xs font-medium">
+                                    <span class="w-8 h-8 rounded-xl bg-violetbrand-100/80 text-violetbrand-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">👗</span>
+                                    <span>لباس فرم مصوب و قوانین غیبت</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-violetbrand-500 group-hover:-translate-x-1 transition-all"></i>
+                            </button>
+
+                            <button onclick="askQuickPrompt('روزها و ساعات ملاقات اولیا با آموزگاران چگونه است؟')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                                <div class="flex items-center gap-2.5 text-xs font-medium">
+                                    <span class="w-8 h-8 rounded-xl bg-pink-100/80 text-pink-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">👩‍🏫</span>
+                                    <span>روزها و ساعات ملاقات با آموزگاران</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-pink-500 group-hover:-translate-x-1 transition-all"></i>
+                            </button>
+
+                            <button onclick="askQuickPrompt('برنامه، عناوین و نحوه برگزاری کلاس‌های فوق‌برنامه و کارگاه‌های مهارتی چگونه است؟')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                                <div class="flex items-center gap-2.5 text-xs font-medium">
+                                    <span class="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">🎨</span>
+                                    <span>کلاس‌های فوق‌برنامه و کارگاه مهارتی</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-amber-500 group-hover:-translate-x-1 transition-all"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="typingIndicator" class="hidden px-6 py-2.5">
+                    <div class="flex items-center gap-3 text-xs text-rosebrand-700 bg-white/95 w-fit px-4 py-2 rounded-2xl border border-rosebrand-200/80 shadow-card-3d backdrop-blur-lg">
+                        <span class="font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-compass-drafting text-rosebrand-500 animate-spin"></i>
+                            درحال تطبیق با مصوبات مدرسه و نگارش پاسخ...
+                        </span>
+                        <div class="flex gap-1 items-center">
+                            <div class="w-2 h-2 bg-rosebrand-500 rounded-full typing-dot"></div>
+                            <div class="w-2 h-2 bg-rosebrand-500 rounded-full typing-dot"></div>
+                            <div class="w-2 h-2 bg-rosebrand-500 rounded-full typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 md:p-4 bg-white/80 border-t border-slate-200/70 backdrop-blur-xl shrink-0">
+                    <form id="chatForm" onsubmit="handleChatSubmit(event)" class="flex items-end gap-2.5">
+                        <div class="flex-1 relative bg-white rounded-2xl border border-slate-200/90 focus-within:border-rosebrand-500 focus-within:ring-4 focus-within:ring-rosebrand-500/10 transition-all shadow-inner-glow">
+                            <textarea 
+                                id="userInput" 
+                                rows="1" 
+                                placeholder="پرسش خود را درباره مدرسه یا نوآموزان بنویسید..." 
+                                class="w-full bg-transparent px-4 py-3 text-xs sm:text-sm focus:outline-none resize-none max-h-32 text-slate-800 placeholder:text-slate-400 font-medium"
+                                onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); handleChatSubmit(event); }"
+                                oninput="autoResizeTextarea(this)"></textarea>
+                        </div>
+                        <button 
+                            type="submit" 
+                            id="sendBtn"
+                            class="h-12 w-12 rounded-2xl bg-gradient-to-tr from-rosebrand-600 via-rose-500 to-violetbrand-600 hover:brightness-110 active:scale-95 text-white flex items-center justify-center shrink-0 shadow-btn-3d transition-all btn-depth disabled:opacity-40 disabled:pointer-events-none">
+                            <i class="fa-solid fa-paper-plane text-sm transform -rotate-12"></i>
+                        </button>
+                    </form>
+                    <div class="flex justify-between items-center mt-2 px-1 text-[11px] text-slate-400 font-medium">
+                        <span>پاسخ‌ها تماماً بر پایه آخرین مصوبات مدرسه استخراج می‌شوند.</span>
+                        <button onclick="clearChatHistory()" class="text-rosebrand-600 hover:text-rosebrand-800 transition flex items-center gap-1 font-semibold">
+                            <i class="fa-solid fa-rotate-left text-[10px]"></i>
+                            پاکسازی گفتگو
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: PRINCIPAL ADMIN DASHBOARD -->
+            <div id="adminView" class="hidden flex-1 overflow-y-auto p-4 md:p-6 space-y-5 bg-gradient-to-b from-slate-50/80 to-rosebrand-50/20">
+                <div class="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-r from-violetbrand-900 via-slate-900 to-rosebrand-950 text-white shadow-2xl border border-white/20">
+                    <div class="absolute -top-12 -right-12 w-36 h-36 bg-rosebrand-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="flex items-start gap-4 relative z-10">
+                        <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-xl text-rosebrand-300 border border-white/20 shadow-inner">
+                            <i class="fa-solid fa-cloud-bolt"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <h2 class="font-extrabold text-sm sm:text-base text-white tracking-tight flex items-center gap-2">
+                                    میز کار مدیریت (همگام‌سازی ابری سراسری)
+                                </h2>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="openChangePasswordModal()" class="text-xs bg-white/15 hover:bg-white/25 active:scale-95 text-white px-3 py-1.5 rounded-xl font-bold transition border border-white/20 flex items-center gap-1 btn-depth">
+                                        <i class="fa-solid fa-key text-amber-300"></i>
+                                        تغییر رمز عبور
+                                    </button>
+                                    <button onclick="logoutAdmin()" class="text-xs text-rosebrand-300 hover:text-white font-bold px-2 py-1 transition">
+                                        خروج از پنل
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                                هر سندی که در این سامانه ثبت یا ویرایش فرمایید، فوراً در دیتابیس مرکزی ذخیره شده و برای تمام اولیا به‌روزرسانی می‌شود.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backend Proxy Configuration -->
+                <div class="bg-white/90 rounded-3xl p-5 border border-white shadow-card-3d backdrop-blur-md">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-tower-broadcast text-violetbrand-600"></i>
+                            وضعیت درگاه امن هوش مصنوعی و دیتابیس
+                        </h3>
+                        <span id="dbConfigStatusBadge" class="text-[10px] px-3 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            بررسی وضعیت...
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mb-3">
+                        آدرس سرور ایمن واسط (Cloudflare Worker):
+                    </p>
+                    <div class="flex gap-2">
+                        <input type="text" id="backendWorkerUrlInput" placeholder="https://arefan-ai-proxy.yourname.workers.dev" class="flex-1 text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 font-mono text-left bg-slate-50/70" dir="ltr">
+                        <button onclick="saveAdminBackendUrl()" class="py-2.5 px-4 bg-violetbrand-600 hover:bg-violetbrand-700 active:scale-95 text-white rounded-2xl text-xs font-bold transition shrink-0 shadow-btn-3d btn-depth">
+                            ذخیره تنظیمات
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PDF Upload -->
+                <div class="bg-white/90 rounded-3xl p-5 border border-white shadow-card-3d backdrop-blur-md">
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-rosebrand-600 text-base"></i>
+                        بارگذاری فایل PDF جدید (بخشنامه، تقویم اجرایی، برنامه هفتگی)
+                    </h3>
+                    <div 
+                        id="dropZone" 
+                        onclick="document.getElementById('pdfFileInput').click()"
+                        class="border-2 border-dashed border-rosebrand-300 hover:border-rosebrand-500 rounded-3xl p-6 text-center cursor-pointer bg-gradient-to-b from-rosebrand-50/30 to-white hover:from-rosebrand-50/60 transition-all flex flex-col items-center justify-center group btn-depth">
+                        <input type="file" id="pdfFileInput" accept=".pdf" class="hidden" onchange="handleAdminFileUpload(event)">
+                        
+                        <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-card-3d text-rosebrand-600 text-2xl mb-2.5 group-hover:scale-110 group-hover:-translate-y-1 transition-all">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <p class="text-xs sm:text-sm font-extrabold text-slate-800">برای انتخاب فایل PDF بخشنامه کلیک کنید</p>
+                        <p class="text-[11px] text-slate-500 mt-1">متن سند به صورت آنی استخراج شده و در سرور مرکزی فعال خواهد شد</p>
+                        
+                        <div id="uploadSpinner" class="hidden mt-3 flex items-center gap-2 text-xs font-bold text-rosebrand-600 bg-white px-3 py-1.5 rounded-full shadow-sm">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i>
+                            <span>در حال استخراج متون و ثبت در سرور ابری...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direct Announcement Box -->
+                <div class="bg-white/90 rounded-3xl p-5 border border-white shadow-card-3d backdrop-blur-md">
+                    <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-bullhorn text-indigo-500"></i>
+                        ثبت فوری اطلاعیه یا مصوبه جدید
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mb-3">برای تغییرات ناگهانی مثل ساعت اردو، شرایط لباس فرم یا ساعات امتحانات:</p>
+                    <div class="space-y-2.5">
+                        <input type="text" id="manualDocTitle" placeholder="عنوان مصوبه (مثال: تغییر ساعت اردوی ۲۵ آذر)" class="w-full text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 bg-slate-50/60">
+                        <textarea id="manualDocContent" rows="3" placeholder="متن کامل بخشنامه یا مصوبه آموزشی را بنویسید..." class="w-full text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 bg-slate-50/60 leading-relaxed"></textarea>
+                        <button onclick="saveAdminManualDocument()" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-btn-3d btn-depth">
+                            <i class="fa-solid fa-cloud-arrow-up text-rosebrand-400"></i>
+                            انتشار فوری در سرور سراسری
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Copilot Card -->
+                <div class="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-rosebrand-50/90 via-violetbrand-50/90 to-white border border-rosebrand-200/70 shadow-card-3d">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-rosebrand-600"></i>
+                            دستیار هوشمند مدیر مدرسه (Gemini)
+                        </h3>
+                        <span class="text-[10px] bg-rosebrand-100 text-rosebrand-700 font-bold px-2.5 py-0.5 rounded-full border border-rosebrand-200">
+                            Gemini Flash
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-slate-600 leading-relaxed mb-3">
+                        تبدیل بخشنامه‌های اداری به پیام‌های شاد و صمیمانه برای کانال یا استخراج خودکار پرسش‌های متداول:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button type="button" onclick="generateAiAnnouncementFromDocs()" id="aiDraftBtn" class="py-2.5 px-3 bg-white hover:bg-violetbrand-50 text-violetbrand-700 border border-violetbrand-200 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-2xs btn-depth">
+                            <i class="fa-solid fa-pen-nib"></i>
+                            نگارش پیام برای کانال اولیا
+                        </button>
+                        <button type="button" onclick="generateDynamicFaqQuestions()" id="aiFaqBtn" class="py-2.5 px-3 bg-white hover:bg-rosebrand-50 text-rosebrand-700 border border-rosebrand-200 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-2xs btn-depth">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            استخراج خودکار پرسش‌های متداول
+                        </button>
+                    </div>
+
+                    <div id="aiOutputBox" class="hidden mt-3 p-3.5 bg-white rounded-2xl border border-violetbrand-100 text-xs space-y-2 shadow-inner">
+                        <div class="flex items-center justify-between text-slate-500 text-[11px] pb-1.5 border-b border-slate-100">
+                            <span id="aiOutputTitle" class="font-bold text-violetbrand-800">پیش‌نویس تولیدی:</span>
+                            <button onclick="copyAiOutputToManualDraft()" class="text-rosebrand-600 hover:text-rosebrand-700 font-bold transition flex items-center gap-1">
+                                <i class="fa-solid fa-copy"></i>
+                                انتقال به کادر انتشار
+                            </button>
+                        </div>
+                        <div id="aiOutputText" class="text-slate-700 whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto font-sans"></div>
+                    </div>
+                </div>
+
+                <!-- Active Documents List -->
+                <div class="bg-white/90 rounded-3xl p-5 border border-white shadow-card-3d backdrop-blur-md">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-folder-tree text-violetbrand-600"></i>
+                            بخشنامه‌ها و اسناد فعال در سرور مرکزی
+                        </h3>
+                        <span id="adminDocCounter" class="text-xs font-bold text-slate-400">۰ سند فعال</span>
+                    </div>
+                    <div id="adminDocumentsList" class="space-y-2.5"></div>
+                </div>
+
+                <button onclick="toggleAdminView(false)" class="w-full py-3.5 bg-gradient-to-r from-rosebrand-600 to-violetbrand-600 hover:brightness-110 text-white rounded-2xl text-xs sm:text-sm font-extrabold shadow-btn-3d btn-depth flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    بازگشت به صفحه گفتگوی اولیا
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL 1: VIEW DOCUMENT -->
+    <div id="viewDocModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 rounded-3xl p-5 md:p-6 w-full max-w-lg shadow-2xl border border-white/80 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5 overflow-hidden">
+                    <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                        <i class="fa-solid fa-file-lines text-base"></i>
+                    </div>
+                    <div class="truncate">
+                        <h3 id="viewDocTitle" class="font-extrabold text-slate-800 text-xs sm:text-sm truncate">عنوان بخشنامه</h3>
+                        <p id="viewDocDate" class="text-[10px] text-slate-400 font-medium">تاریخ ثبت</p>
+                    </div>
+                </div>
+                <button onclick="closeViewDocModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <div id="viewDocContent" class="flex-1 overflow-y-auto p-4 bg-slate-50/70 rounded-2xl text-xs text-slate-700 leading-relaxed font-sans whitespace-pre-wrap border border-slate-200/80"></div>
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="copyCurrentViewedDoc()" class="text-xs text-rosebrand-600 hover:text-rosebrand-700 font-bold flex items-center gap-1.5 py-2 px-3 rounded-xl hover:bg-rosebrand-50 transition">
+                    <i class="fa-solid fa-copy"></i>
+                    کپی متن کامل
+                </button>
+                <button onclick="closeViewDocModal()" class="py-2.5 px-5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition shadow-btn-3d btn-depth">
+                    بستن پنجره
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: EDIT DOCUMENT -->
+    <div id="editDocModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 rounded-3xl p-5 md:p-6 w-full max-w-lg shadow-2xl border border-white/80 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
+                        <i class="fa-solid fa-pen-to-square text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-slate-800 text-xs sm:text-sm">ویرایش بخشنامه مدرسه</h3>
+                        <p class="text-[10px] text-slate-400">تغییرات فوراً در دیتابیس متمرکز اعمال می‌شود</p>
+                    </div>
+                </div>
+                <button onclick="closeEditDocModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <input type="hidden" id="editingDocId">
+            <div class="space-y-3 flex-1 overflow-y-auto">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">عنوان بخشنامه یا سند:</label>
+                    <input type="text" id="editDocTitleInput" class="w-full text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">متن کامل مصوبه و اطلاعات:</label>
+                    <textarea id="editDocContentInput" rows="9" class="w-full text-xs p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 leading-relaxed font-sans"></textarea>
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2 border-t border-slate-100">
+                <button onclick="saveEditedDocument()" class="flex-1 py-3 bg-gradient-to-r from-rosebrand-600 to-violetbrand-600 text-white font-extrabold text-xs rounded-2xl shadow-btn-3d btn-depth flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    ذخیره و انتشار تغییرات
+                </button>
+                <button onclick="closeEditDocModal()" class="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition">
+                    انصراف
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: CHANGE ADMIN PASSWORD -->
+    <div id="changePasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-white/80 space-y-4">
+            <div class="w-12 h-12 bg-violetbrand-100 text-violetbrand-700 rounded-2xl flex items-center justify-center text-xl mx-auto shadow-inner">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <div class="text-center">
+                <h3 class="font-extrabold text-slate-800 text-sm sm:text-base">تغییر رمز عبور پنل مدیریت</h3>
+                <p class="text-xs text-slate-500 mt-1">رمز جدید به صورت ایمن هش می‌شود.</p>
+            </div>
+            <div class="space-y-2.5">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">رمز عبور فعلی:</label>
+                    <input type="password" id="currentPassInput" placeholder="رمز فعلی..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-center">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">رمز عبور جدید:</label>
+                    <input type="password" id="newPassInput" placeholder="رمز جدید..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-center">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">تکرار رمز عبور جدید:</label>
+                    <input type="password" id="confirmNewPassInput" placeholder="تکرار رمز جدید..." class="w-full p-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-center">
+                </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="handleSaveNewPassword()" class="flex-1 py-3 bg-violetbrand-600 hover:bg-violetbrand-700 text-white font-extrabold text-xs rounded-2xl shadow-btn-3d btn-depth">
+                    ذخیره رمز جدید
+                </button>
+                <button onclick="closeChangePasswordModal()" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition">
+                    انصراف
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: ADMIN LOGIN -->
+    <div id="adminPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white/95 rounded-3xl p-6 w-full max-w-sm shadow-2xl border border-white/80 space-y-4">
+            <div class="w-14 h-14 bg-rosebrand-100 text-rosebrand-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner">
+                <i class="fa-solid fa-shield-cat"></i>
+            </div>
+            <div class="text-center">
+                <h3 class="font-extrabold text-slate-800 text-sm sm:text-base">ورود اختصاصی مدیریت آموزشگاه</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">این بخش ویژه مدیریت است؛ اولیای گرامی برای پاسخگویی نیازی به رمز ندارند.</p>
+            </div>
+            <div>
+                <input type="password" id="adminPasswordInput" placeholder="رمز عبور مدیر را وارد کنید..." class="w-full p-3 text-xs sm:text-sm rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 text-center font-mono" onkeydown="if(event.key === 'Enter') verifyAdminPassword()">
+            </div>
+            <div class="flex gap-2">
+                <button onclick="verifyAdminPassword()" class="flex-1 py-3 bg-gradient-to-r from-rosebrand-600 to-violetbrand-600 text-white font-extrabold text-xs rounded-2xl shadow-btn-3d btn-depth">
+                    ورود به پنل
+                </button>
+                <button onclick="closeAdminModal()" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition">
+                    انصراف
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modern Toast Alert -->
+    <div id="toastNotification" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white text-xs px-5 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-24 opacity-0 pointer-events-none z-50 flex items-center gap-2.5 border border-white/20">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="toastMsg" class="font-medium">عملیات با موفقیت انجام شد</span>
+    </div>
+
+<script>
+    // =========================================================================================
+    // تنظیمات و پیکربندی مرکزی
+    // =========================================================================================
+    const PERMANENT_FIREBASE_URL = "https://arefan-chat-a0721-default-rtdb.asia-southeast1.firebasedatabase.app";
+    // در صورت راه‌اندازی Cloudflare Worker، آدرس آن را در خط زیر قرار دهید:
+    const DEFAULT_BACKEND_WORKER_URL = ""; 
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // هش پیش‌فرض برای رمز عبور "admin1403" با الگوریتم امن SHA-256
+    const DEFAULT_ADMIN_HASH = "d1933cb6ef137f6a73ba1fbc034bfad42be005b7a0f670f5698b67119ff39eec";
+
+    const DEFAULT_SEED_DOCUMENTS = [
+        {
+            id: 'doc-default-rule',
+            title: 'آیین‌نامه انضباطی، لباس فرم و ساعات ورود و خروج مدرسه',
+            date: 'سال تحصیلی جاری',
+            content: `
+[ساعات حضور و ورود/خروج]:
+- پیش‌دبستانی: شنبه تا چهارشنبه از ساعت ۸:۰۰ صبح الی ۱۲:۳۰ ظهر
+- دبستان (اول تا ششم): شنبه تا چهارشنبه از ساعت ۷:۳۰ صبح الی ۱۴:۰۰ عصر
+- مراسم آغازین و صبحگاه هر روز راس ساعت ۷:۳۰ با تلاوت قرآن و ورزش صبحگاهی آغاز می‌گردد.
+
+[لباس فرم و پوشش مصوب]:
+- مانتو و شلوار سرمه‌ای تیره با مقنعه صورتی هلویی ویژه دانش‌آموزان پیش‌دبستانی و دبستان.
+- همراه داشتن طلا، زیورآلات و تلفن همراه یا ساعت هوشمند در مدرسه اکیداً ممنوع است.
+
+[ملاقات با آموزگاران]:
+- پایه اول: دوشنبه‌ها ساعت ۱۰ الی ۱۱
+- پایه دوم: سه‌شنبه‌ها ساعت ۱۱ الی ۱۲
+- پایه سوم: یکشنبه‌ها ساعت ۹ الی ۱۰
+- پیش‌دبستانی: چهارشنبه‌ها ساعت ۱۰:۳۰ الی ۱۱:۳۰
+- دفتر دبستان و پیش‌دبستانی روزهای شنبه تا چهارشنبه از ساعت ۸ تا ۱۳:۳۰ پاسخگوی مراجعین و تماس‌های اولیا است.
+
+[کلاس‌های فوق‌برنامه و مهارتی]:
+- برگزاری کارگاه‌های مهارتی شامل: مهارت‌های زندگی، فلسفه برای کودک (فبک)، هوش مالی، چرتکه، رباتیک، نقاشی خلاق و فعالیت‌های شاداب‌سازی ورزشی ویژه پیش‌دبستانی و دبستان.
+- زمان‌بندی دقیق و ثبت‌نام این دوره‌ها مطابق با تقویم پرورشی و بخشنامه‌های اطلاع‌رسانی شده در پیام‌رسان مدرسه انجام می‌پذیرد.
+`
+        }
+    ];
+
+    let appState = {
+        isAdminLoggedIn: false,
+        adminPassHash: localStorage.getItem('school_admin_pass_hash') || DEFAULT_ADMIN_HASH,
+        firebaseUrl: PERMANENT_FIREBASE_URL.replace(/\/$/, ''),
+        backendWorkerUrl: localStorage.getItem('school_worker_url') || DEFAULT_BACKEND_WORKER_URL,
+        documents: [],
+        isThinking: false,
+        eventSource: null,
+        threeJsRunning: true
+    };
+
+    // الگوریتم استاندارد و امن رمزنگاری کلاینت SHA-256
+    async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toastNotification');
+        const text = document.getElementById('toastMsg');
+        const icon = document.getElementById('toastIcon');
+
+        text.innerText = msg;
+        if (type === 'error') {
+            icon.className = 'fa-solid fa-circle-exclamation text-rosebrand-400 text-sm';
+        } else {
+            icon.className = 'fa-solid fa-circle-check text-emerald-400 text-sm';
+        }
+
+        toast.classList.remove('translate-y-24', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+
+        setTimeout(() => {
+            toast.classList.add('translate-y-24', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        }, 3500);
+    }
+
+    // تبدیل داده‌های دریافتی از فایربیس (آرایه یا آبجکت تودرتو) به ساختار یکدست آرایه‌ای
+    function sanitizeDocumentList(data) {
+        if (!data) return [];
+        if (Array.isArray(data)) {
+            return data.filter(item => item !== null && typeof item === 'object');
+        }
+        if (typeof data === 'object') {
+            return Object.keys(data).map(key => ({
+                id: data[key].id || key,
+                title: data[key].title || 'بخشنامه بدون عنوان',
+                date: data[key].date || 'نامشخص',
+                content: data[key].content || ''
+            }));
+        }
+        return [];
+    }
+
+    async function fetchDocsFromCloud(showNotice = false) {
+        const syncIcon = document.getElementById('syncIcon');
+        if (syncIcon) syncIcon.classList.add('fa-spin');
+
+        const localSaved = localStorage.getItem('school_cached_docs');
+        if (localSaved) {
+            try { 
+                const parsed = JSON.parse(localSaved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    appState.documents = parsed;
+                }
+            } catch(e){}
+        }
+        if (!appState.documents || appState.documents.length === 0) {
+            appState.documents = [...DEFAULT_SEED_DOCUMENTS];
+        }
+
+        updateDatabaseStatusUI();
+
+        const activeUrl = appState.firebaseUrl;
+        if (activeUrl && activeUrl.startsWith('http')) {
+            try {
+                const res = await fetch(`${activeUrl}/documents.json`);
+                if (res.ok) {
+                    const rawData = await res.json();
+                    const sanitized = sanitizeDocumentList(rawData);
+                    if (sanitized.length > 0) {
+                        appState.documents = sanitized;
+                        localStorage.setItem('school_cached_docs', JSON.stringify(appState.documents));
+                        document.getElementById('cloudStatusText').innerText = 'پایگاه مرکزی فعال و متصل است 🟢';
+                        if (showNotice) showToast('اطلاعات با پایگاه مرکزی هماهنگ شد.');
+                    } else {
+                        document.getElementById('cloudStatusText').innerText = 'پایگاه ابری آماده ثبت داده‌ها';
+                        await syncDocsToCloud(false);
+                    }
+                } else {
+                    document.getElementById('cloudStatusText').innerText = 'خطای ارتباط با فایربیس';
+                }
+            } catch (err) {
+                console.warn("Cloud connection error:", err);
+                document.getElementById('cloudStatusText').innerText = 'استفاده از حافظه پشتیبان محلی (آفلاین)';
+                if (showNotice) showToast('عدم دسترسی به پایگاه مرکزی.', 'error');
+            }
+        }
+
+        updateHeaderStatus();
+        if (appState.isAdminLoggedIn) renderAdminDocs();
+        if (syncIcon) syncIcon.classList.remove('fa-spin');
+    }
+
+    function setupRealtimeListener() {
+        const activeUrl = appState.firebaseUrl;
+        if (!activeUrl || !activeUrl.startsWith('http')) return;
+
+        if (appState.eventSource) {
+            appState.eventSource.close();
+        }
+
+        try {
+            appState.eventSource = new EventSource(`${activeUrl}/documents.json`);
+            appState.eventSource.addEventListener('put', (event) => {
+                try {
+                    const parsed = JSON.parse(event.data);
+                    if (parsed && parsed.data) {
+                        const sanitized = sanitizeDocumentList(parsed.data);
+                        if (sanitized.length > 0) {
+                            appState.documents = sanitized;
+                            localStorage.setItem('school_cached_docs', JSON.stringify(appState.documents));
+                            updateHeaderStatus();
+                            if (appState.isAdminLoggedIn) renderAdminDocs();
+                        }
+                    }
+                } catch(e){}
+            });
+            appState.eventSource.onerror = () => {};
+        } catch(e) {
+            console.warn("SSE Listener init:", e);
+        }
+    }
+
+    async function syncDocsToCloud(showToastMessage = true) {
+        localStorage.setItem('school_cached_docs', JSON.stringify(appState.documents));
+
+        const activeUrl = appState.firebaseUrl;
+        if (activeUrl && activeUrl.startsWith('http')) {
+            try {
+                const res = await fetch(`${activeUrl}/documents.json`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(appState.documents)
+                });
+                if (!res.ok) throw new Error(`Status ${res.status}`);
+                if (showToastMessage) showToast('تغییرات در سرور مرکزی ثبت شد.');
+            } catch (err) {
+                console.error("Cloud push failed:", err);
+                if (showToastMessage) showToast('خطا در ذخیره در سرور ابری.', 'error');
+            }
+        }
+        updateHeaderStatus();
+        renderAdminDocs();
+    }
+
+    function saveAdminBackendUrl() {
+        const input = document.getElementById('backendWorkerUrlInput');
+        let val = input.value.trim().replace(/\/$/, '');
+        appState.backendWorkerUrl = val;
+        localStorage.setItem('school_worker_url', val);
+        showToast('آدرس سرور واسط با موفقیت ثبت گردید.');
+        updateDatabaseStatusUI();
+    }
+
+    function updateDatabaseStatusUI() {
+        const badge = document.getElementById('dbConfigStatusBadge');
+        const input = document.getElementById('backendWorkerUrlInput');
+        if (input) input.value = appState.backendWorkerUrl;
+
+        if (badge) {
+            if (appState.backendWorkerUrl) {
+                badge.innerText = 'درگاه ایمن متصل 🟢';
+                badge.className = 'text-[10px] px-3 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+            } else {
+                badge.innerText = 'حالت محلی / بدون ورکر ⚠️';
+                badge.className = 'text-[10px] px-3 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200';
+            }
+        }
+    }
+
+    function updateHeaderStatus() {
+        const count = appState.documents.length;
+        const badge = document.getElementById('docCountBadge');
+        if (badge) badge.innerText = `${count} سند فعال`;
+        const adminCounter = document.getElementById('adminDocCounter');
+        if (adminCounter) adminCounter.innerText = `${count} سند فعال در مخزن`;
+    }
+
+    function handleAdminButtonClick() {
+        if (appState.isAdminLoggedIn) {
+            toggleAdminView(true);
+        } else {
+            document.getElementById('adminPasswordModal').classList.remove('hidden');
+            const pwdInput = document.getElementById('adminPasswordInput');
+            pwdInput.value = '';
+            pwdInput.focus();
+        }
+    }
+
+    function closeAdminModal() {
+        document.getElementById('adminPasswordModal').classList.add('hidden');
+    }
+
+    async function verifyAdminPassword() {
+        const input = document.getElementById('adminPasswordInput').value;
+        const hashedInput = await sha256(input);
+
+        if (hashedInput === appState.adminPassHash) {
+            appState.isAdminLoggedIn = true;
+            closeAdminModal();
+            toggleAdminView(true);
+            document.getElementById('adminBtnLabel').innerText = 'میز کار مدیر';
+            document.getElementById('adminLockIcon').className = 'fa-solid fa-lock-open text-emerald-300';
+            showToast('خوش آمدید، احراز هویت مدیریت تایید شد.');
+        } else {
+            showToast('رمز عبور وارد شده نادرست است!', 'error');
+        }
+    }
+
+    function logoutAdmin() {
+        appState.isAdminLoggedIn = false;
+        document.getElementById('adminBtnLabel').innerText = 'ورود مدیر';
+        document.getElementById('adminLockIcon').className = 'fa-solid fa-shield-halved text-amber-300';
+        toggleAdminView(false);
+        showToast('از پنل مدیریت خارج شدید.');
+    }
+
+    function toggleAdminView(showAdmin) {
+        const chatView = document.getElementById('chatView');
+        const adminView = document.getElementById('adminView');
+
+        if (showAdmin) {
+            chatView.classList.add('hidden');
+            adminView.classList.remove('hidden');
+            renderAdminDocs();
+            updateDatabaseStatusUI();
+        } else {
+            adminView.classList.add('hidden');
+            chatView.classList.remove('hidden');
+        }
+    }
+
+    async function handleAdminFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf') {
+            showToast('لطفاً تنها فایل با فرمت PDF انتخاب فرمایید.', 'error');
+            return;
+        }
+
+        const spinner = document.getElementById('uploadSpinner');
+        spinner.classList.remove('hidden');
+
+        try {
+            const buffer = await file.arrayBuffer();
+            const loadingTask = pdfjsLib.getDocument({ data: buffer });
+            const pdf = await loadingTask.promise;
+
+            let extractedText = '';
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(' ');
+                extractedText += `\n[صفحه ${pageNum}]:\n${pageText}\n`;
+            }
+
+            if (!extractedText.trim()) {
+                showToast('متنی در این فایل یافت نشد. ممکن است اسکن تصویری باشد.', 'error');
+                return;
+            }
+
+            const newDoc = {
+                id: 'doc-' + Date.now(),
+                title: file.name.replace('.pdf', ''),
+                date: new Date().toLocaleDateString('fa-IR'),
+                content: extractedText.trim()
+            };
+
+            appState.documents.push(newDoc);
+            await syncDocsToCloud(true);
+            showToast(`فایل «${file.name}» در پایگاه سراسری ذخیره شد!`);
+            event.target.value = '';
+        } catch (e) {
+            console.error("PDF Read Error:", e);
+            showToast('خطا در پردازش فایل PDF.', 'error');
+        } finally {
+            spinner.classList.add('hidden');
+        }
+    }
+
+    async function saveAdminManualDocument() {
+        const titleInput = document.getElementById('manualDocTitle');
+        const contentInput = document.getElementById('manualDocContent');
+
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+
+        if (!title || !content) {
+            showToast('لطفاً عنوان و متن مصوبه را بنویسید.', 'error');
+            return;
+        }
+
+        const newDoc = {
+            id: 'doc-' + Date.now(),
+            title: title,
+            date: new Date().toLocaleDateString('fa-IR'),
+            content: content
+        };
+
+        appState.documents.push(newDoc);
+        await syncDocsToCloud(true);
+        titleInput.value = '';
+        contentInput.value = '';
+        showToast('مصوبه جدید در سرور سراسری ثبت گردید.');
+    }
+
+    async function deleteDocument(docId) {
+        appState.documents = appState.documents.filter(d => d.id !== docId);
+        await syncDocsToCloud(true);
+        showToast('سند مورد نظر از سرور حذف شد.');
+    }
+
+    function viewDocument(docId) {
+        const doc = appState.documents.find(d => d.id === docId);
+        if (!doc) return;
+
+        document.getElementById('viewDocTitle').innerText = doc.title;
+        document.getElementById('viewDocDate').innerText = `ثبت شده در تاریخ: ${doc.date}`;
+        document.getElementById('viewDocContent').innerText = doc.content;
+        document.getElementById('viewDocModal').classList.remove('hidden');
+    }
+
+    function closeViewDocModal() {
+        document.getElementById('viewDocModal').classList.add('hidden');
+    }
+
+    // استفاده از Clipboard API مدرن به جای متد منسوخ قبلی
+    async function copyCurrentViewedDoc() {
+        const content = document.getElementById('viewDocContent').innerText;
+        if (!content) return;
+        try {
+            await navigator.clipboard.writeText(content);
+            showToast('متن بخشنامه در کلیپ‌بورد کپی شد.');
+        } catch(err) {
+            showToast('امکان دسترسی به کلیپ‌بورد مقدور نیست.', 'error');
+        }
+    }
+
+    function openEditDocModal(docId) {
+        const doc = appState.documents.find(d => d.id === docId);
+        if (!doc) return;
+
+        document.getElementById('editingDocId').value = doc.id;
+        document.getElementById('editDocTitleInput').value = doc.title;
+        document.getElementById('editDocContentInput').value = doc.content;
+        document.getElementById('editDocModal').classList.remove('hidden');
+    }
+
+    function closeEditDocModal() {
+        document.getElementById('editDocModal').classList.add('hidden');
+    }
+
+    async function saveEditedDocument() {
+        const docId = document.getElementById('editingDocId').value;
+        const newTitle = document.getElementById('editDocTitleInput').value.trim();
+        const newContent = document.getElementById('editDocContentInput').value.trim();
+
+        if (!newTitle || !newContent) {
+            showToast('عنوان و متن بخشنامه نمی‌تواند خالی باشد.', 'error');
+            return;
+        }
+
+        const docIndex = appState.documents.findIndex(d => d.id === docId);
+        if (docIndex === -1) return;
+
+        appState.documents[docIndex].title = newTitle;
+        appState.documents[docIndex].content = newContent;
+        appState.documents[docIndex].date = new Date().toLocaleDateString('fa-IR') + ' (ویرایش‌شده)';
+
+        await syncDocsToCloud(true);
+        closeEditDocModal();
+        showToast('تغییرات بخشنامه در سرور ذخیره شد.');
+    }
+
+    function openChangePasswordModal() {
+        document.getElementById('currentPassInput').value = '';
+        document.getElementById('newPassInput').value = '';
+        document.getElementById('confirmNewPassInput').value = '';
+        document.getElementById('changePasswordModal').classList.remove('hidden');
+    }
+
+    function closeChangePasswordModal() {
+        document.getElementById('changePasswordModal').classList.add('hidden');
+    }
+
+    async function handleSaveNewPassword() {
+        const currentPass = document.getElementById('currentPassInput').value;
+        const newPass = document.getElementById('newPassInput').value.trim();
+        const confirmPass = document.getElementById('confirmNewPassInput').value.trim();
+
+        const hashedCurrent = await sha256(currentPass);
+        if (hashedCurrent !== appState.adminPassHash) {
+            showToast('رمز عبور فعلی نادرست است!', 'error');
+            return;
+        }
+
+        if (!newPass || newPass.length < 5) {
+            showToast('رمز جدید باید حداقل ۵ رقم/حرف باشد.', 'error');
+            return;
+        }
+
+        if (newPass !== confirmPass) {
+            showToast('تکرار رمز با رمز جدید یکسان نیست!', 'error');
+            return;
+        }
+
+        const hashedNew = await sha256(newPass);
+        appState.adminPassHash = hashedNew;
+        localStorage.setItem('school_admin_pass_hash', hashedNew);
+        closeChangePasswordModal();
+        showToast('رمز عبور مدیریت با موفقیت تغییر یافت.');
+    }
+
+    function renderAdminDocs() {
+        const list = document.getElementById('adminDocumentsList');
+        if (!list) return;
+
+        if (!appState.documents || appState.documents.length === 0) {
+            list.innerHTML = `
+                <div class="p-5 text-center text-xs text-slate-400 bg-slate-50/80 rounded-2xl border border-dashed border-slate-200">
+                    هیچ سندی در سیستم وجود ندارد. لطفاً یک فایل PDF یا اطلاعیه متنی بارگذاری فرمایید.
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = appState.documents.map(d => `
+            <div class="flex items-center justify-between p-3.5 rounded-2xl border border-slate-100 bg-white/95 hover:bg-rosebrand-50/40 transition gap-2 shadow-2xs">
+                <div class="flex items-center gap-3 overflow-hidden flex-1">
+                    <div class="w-9 h-9 rounded-xl bg-rosebrand-100 text-rosebrand-600 flex items-center justify-center shrink-0 text-sm shadow-inner">
+                        <i class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-slate-800 truncate">${d.title}</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">ثبت در تاریخ: ${d.date}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                    <button onclick="viewDocument('${d.id}')" title="مشاهده کامل بخشنامه" class="text-slate-500 hover:text-blue-600 p-2 rounded-xl hover:bg-slate-50 transition text-xs">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button onclick="openEditDocModal('${d.id}')" title="ویرایش این بخشنامه" class="text-slate-500 hover:text-amber-600 p-2 rounded-xl hover:bg-slate-50 transition text-xs">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button onclick="deleteDocument('${d.id}')" title="حذف این بخشنامه" class="text-slate-400 hover:text-rosebrand-600 p-2 rounded-xl hover:bg-slate-50 transition text-xs">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // فراخوانی ایمن جمینای از طریق سرور واسط یا Fallback لوکال
+    async function callGeminiApi(systemPrompt, userQuery) {
+        if (appState.backendWorkerUrl) {
+            const response = await fetch(`${appState.backendWorkerUrl}/api/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ systemPrompt, prompt: userQuery })
+            });
+            if (!response.ok) throw new Error('Worker response failed');
+            const data = await response.json();
+            return data.text;
+        }
+
+        // اگر هنوز ورکر تنظیم نشده باشد، فوراً به موتور جستجوی هوشمند محلی سوئیچ می‌کند
+        throw new Error("No backend configured. Use local matcher.");
+    }
+
+    function buildSchoolSystemPrompt() {
+        const docsContext = (appState.documents && appState.documents.length > 0)
+            ? appState.documents.map((d, i) => `[سند شماره ${i + 1}: «${d.title}»]\n${d.content}`).join('\n\n')
+            : 'هیچ بخشنامه‌ای در سیستم بارگذاری نشده است.';
+
+        return `شما «مشاور و پاسخگوی هوشمند پیش‌دبستانی و دبستان دخترانه عارفان توس» هستید.
+شما با اولیای گرامی به زبانی صبورانه، مهربان، دلسوز و محترمانه گفت‌وگو می‌کنید.
+
+مجموعه قوانین و مصوبات آموزشگاه عارفان توس:
+=========================================
+${docsContext}
+=========================================
+
+اصول رفتاری شما:
+۱. پاسخ شما تماماً باید بر اساس اطلاعات بالا باشد.
+۲. اگر اطلاعات مشخصی در اسناد بالا ذکر نشده بود، با کمال احترام بفرمایید: «این مورد در مصوبات آموزشگاه عارفان توس ثبت‌نشده است؛ خواهشمندیم در ساعات اداری با دفتر آموزشگاه تماس حاصل فرمایید.»
+۳. لحن سخن باید مناسب فضای آموزشی دخترانه باشد (مانند: «ولی گرامی»، «دختر عزیزمان»).`;
+    }
+
+    // موتور جستجوگر و تطبیق متن هوشمند بدون نیاز به API (آفلاین / Fail-Safe)
+    function findAnswerInDocuments(question) {
+        if (!appState.documents || appState.documents.length === 0) {
+            return "ولی گرامی؛ در حال حاضر بخشنامه‌ای در سامانه ثبت نشده است. لطفاً با دفتر آموزشگاه تماس حاصل فرمایید.";
+        }
+
+        const stopWords = new Set(['از', 'به', 'در', 'با', 'که', 'این', 'آن', 'برای', 'چیست', 'کیست', 'چگونه', 'است', 'آیا', 'و', 'یا', 'را', 'ساعت', 'های']);
+        const tokens = question.toLowerCase().replace(/[\?\؟\,\،\.\:]/g, ' ').split(/\s+/).filter(w => w.length > 1 && !stopWords.has(w));
+
+        let results = [];
+        appState.documents.forEach(doc => {
+            const sections = doc.content.split(/\n{2,}|\r\n{2,}|\n(?=\[|---)/);
+            sections.forEach(sec => {
+                let score = 0;
+                const lowerSec = sec.toLowerCase();
+                tokens.forEach(tok => {
+                    if (lowerSec.includes(tok)) score += 5;
+                });
+                if (score > 0) {
+                    results.push({ title: doc.title, text: sec.trim(), score: score });
+                }
+            });
+        });
+
+        results.sort((a, b) => b.score - a.score);
+
+        if (results.length === 0) {
+            return `ولی ارجمند؛ 🌸\nدرباره موضوع مطرح‌شده مصوبه‌ای در اسناد رسمی مدرسه ثبت نشده است.\nجهت راهنمایی دقیق‌تر، لطفاً در ساعات اداری با دفتر آموزشگاه تماس حاصل فرمایید.`;
+        }
+
+        let output = `ولی گرامی و ارجمند؛ بر مبنای آخرین مصوبات آموزشگاه عارفان توس:\n\n`;
+        results.slice(0, 2).forEach(r => {
+            output += `📌 **${r.title}**:\n${r.text}\n\n`;
+        });
+        output += `💡 *پاسخ استخراج‌شده از پایگاه مصوبات مدرسه*`;
+        return output;
+    }
+
+    async function generateAiAnnouncementFromDocs() {
+        const btn = document.getElementById('aiDraftBtn');
+        const box = document.getElementById('aiOutputBox');
+        const outputTitle = document.getElementById('aiOutputTitle');
+        const outputText = document.getElementById('aiOutputText');
+
+        if (!appState.documents || appState.documents.length === 0) {
+            showToast('ابتدا حداقل یک بخشنامه ثبت فرمایید.', 'error');
+            return;
+        }
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> نگارش با هوش مصنوعی...`;
+
+        try {
+            const systemPrompt = `شما کارشناس روابط عمومی دبستان دخترانه عارفان توس هستید. وظیفه شما تنظیم یک اطلاعیه صمیمی، پرانرژی و کوتاه برای کانال اطلاع‌رسانی اولیا بر اساس مصوبات است.`;
+            const userPrompt = `بر مبنای این مصوبات، پیامی برای کانال اولیا تنظیم کن:\n\n${appState.documents.slice(-2).map(d => d.title + ":\n" + d.content).join('\n\n')}`;
+
+            const draft = await callGeminiApi(systemPrompt, userPrompt);
+            outputTitle.innerText = 'پیش‌نویس پیام کانال اولیا:';
+            outputText.innerText = draft;
+            box.classList.remove('hidden');
+            showToast('متن اطلاعیه تدوین شد.');
+        } catch (err) {
+            outputTitle.innerText = 'پیش‌نویس خودکار (محلی):';
+            const latest = appState.documents[appState.documents.length - 1];
+            outputText.innerText = `اولیا و همراهان گرامی دبستان عارفان توس 🌸\nبه استحضار می‌رساند پیرو مصوبه «${latest.title}»، جزئیات به شرح ذیل اعلام می‌گردد:\n\n${latest.content.substring(0, 300)}...\n\nبا آرزوی توفیق - مدیریت آموزشگاه`;
+            box.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    async function generateDynamicFaqQuestions() {
+        const btn = document.getElementById('aiFaqBtn');
+        if (!appState.documents || appState.documents.length === 0) {
+            showToast('سندی برای استخراج وجود ندارد.', 'error');
+            return;
+        }
+
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> در حال بررسی...`;
+
+        try {
+            const systemPrompt = `با بررسی متن بخشنامه‌های دبستان، ۴ پرسش متداول اولیا را به فارسی در ۴ خط جداگانه همراه با ایموجی استخراج کن.`;
+            const userPrompt = `اسناد:\n${appState.documents.map(d => d.title + ": " + d.content.substring(0, 200)).join('\n')}`;
+
+            const response = await callGeminiApi(systemPrompt, userPrompt);
+            const questions = response.split('\n').map(q => q.trim().replace(/^[-*•\d\.]+\s*/, '')).filter(q => q.length > 5).slice(0, 4);
+
+            if (questions.length > 0) {
+                const chipsContainer = document.getElementById('quickQuestionsChips');
+                if (chipsContainer) {
+                    chipsContainer.innerHTML = questions.map(q => `
+                        <button onclick="askQuickPrompt('${q.replace(/'/g, "\\'")}')" class="text-right p-3 rounded-2xl bg-white/90 hover:bg-rosebrand-50/90 text-slate-700 hover:text-rosebrand-700 border border-slate-200/80 hover:border-rosebrand-300 transition-all duration-200 shadow-2xs hover:shadow-card-3d btn-depth flex items-center justify-between group">
+                            <span class="text-xs font-medium">${q}</span>
+                            <i class="fa-solid fa-chevron-left text-[10px] text-slate-300 group-hover:text-rosebrand-500 group-hover:-translate-x-1 transition-all"></i>
+                        </button>
+                    `).join('');
+                }
+                showToast('پرسش‌های سریع به‌روزرسانی شدند.');
+            }
+        } catch (err) {
+            showToast('از پرسش‌های پیش‌فرض استفاده می‌شود.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    function copyAiOutputToManualDraft() {
+        const text = document.getElementById('aiOutputText').innerText;
+        if (!text) return;
+        document.getElementById('manualDocTitle').value = 'اطلاعیه هماهنگی آموزشگاه';
+        document.getElementById('manualDocContent').value = text;
+        showToast('متن به کادر انتشار منتقل گردید.');
+    }
+
+    function autoResizeTextarea(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function appendMessage(role, text) {
+        const container = document.getElementById('messagesContainer');
+        const wrapper = document.createElement('div');
+        const isUser = role === 'user';
+        wrapper.className = `flex items-start gap-2.5 ${isUser ? 'justify-end' : ''}`;
+
+        wrapper.innerHTML = `
+            ${!isUser ? `
+                <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-rosebrand-500 to-violetbrand-600 text-white flex items-center justify-center shrink-0 shadow-btn-3d text-sm">
+                    <i class="fa-solid fa-comments"></i>
+                </div>
+            ` : ''}
+            <div class="max-w-[85%] ${isUser ? 'bubble-user bg-gradient-to-l from-rosebrand-600 to-rose-600 text-white shadow-btn-3d' : 'bubble-ai bg-white text-slate-800 border border-slate-100 shadow-card-3d'} p-4 text-xs sm:text-sm leading-relaxed">
+                ${!isUser ? '<p class="font-extrabold text-rosebrand-600 text-[11px] mb-1 flex items-center gap-1.5"><i class="fa-solid fa-sparkles text-amber-500"></i> دستیار هوشمند عارفان توس</p>' : ''}
+                <div class="font-medium whitespace-pre-wrap">${text}</div>
+            </div>
+            ${isUser ? `
+                <div class="w-9 h-9 rounded-2xl bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 shadow-sm text-sm border border-slate-300">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            ` : ''}
+        `;
+
+        container.appendChild(wrapper);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    async function handleChatSubmit(e) {
+        if (e) e.preventDefault();
+        if (appState.isThinking) return;
+
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        input.value = '';
+        input.style.height = 'auto';
+
+        appendMessage('user', text);
+        
+        const typing = document.getElementById('typingIndicator');
+        const container = document.getElementById('messagesContainer');
+        typing.classList.remove('hidden');
+        container.scrollTop = container.scrollHeight;
+        
+        appState.isThinking = true;
+        document.getElementById('sendBtn').disabled = true;
+
+        try {
+            let answer;
+            try {
+                const systemPrompt = buildSchoolSystemPrompt();
+                answer = await callGeminiApi(systemPrompt, text);
+            } catch (apiError) {
+                answer = findAnswerInDocuments(text);
+            }
+
+            typing.classList.add('hidden');
+            appendMessage('model', answer);
+        } catch (err) {
+            typing.classList.add('hidden');
+            appendMessage('model', 'خطایی در آماده‌سازی پاسخ رخ داد. لطفاً با دفتر آموزشگاه تماس حاصل فرمایید.');
+        } finally {
+            appState.isThinking = false;
+            document.getElementById('sendBtn').disabled = false;
+            input.focus();
+        }
+    }
+
+    function askQuickPrompt(q) {
+        document.getElementById('userInput').value = q;
+        handleChatSubmit(null);
+    }
+
+    function clearChatHistory() {
+        const container = document.getElementById('messagesContainer');
+        while (container.children.length > 2) {
+            container.removeChild(container.lastChild);
+        }
+        showToast('گفتگو پاکسازی شد.');
+    }
+
+    // بهینه‌سازی Three.js و جلوگیری از مصرف باتری با خاموش شدن در تب پس‌زمینه
+    function initThreeJsBackground() {
+        const container = document.getElementById('threejs-canvas-container');
+        if (!container || typeof THREE === 'undefined') return;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: "low-power" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+        container.appendChild(renderer.domElement);
+
+        const group = new THREE.Group();
+        scene.add(group);
+
+        const geometries = [
+            new THREE.IcosahedronGeometry(1.4, 0),
+            new THREE.TorusGeometry(1.5, 0.4, 12, 36),
+            new THREE.SphereGeometry(1.2, 16, 16)
+        ];
+
+        const materials = [
+            new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.3, wireframe: true }),
+            new THREE.MeshStandardMaterial({ color: 0x8b5cf6, roughness: 0.2 }),
+            new THREE.MeshStandardMaterial({ color: 0xfb7185, roughness: 0.4 })
+        ];
+
+        const meshes = [];
+        for (let i = 0; i < 12; i++) {
+            const geom = geometries[i % geometries.length];
+            const mat = materials[i % materials.length];
+            const mesh = new THREE.Mesh(geom, mat);
+            
+            mesh.position.x = (Math.random() - 0.5) * 40;
+            mesh.position.y = (Math.random() - 0.5) * 30;
+            mesh.position.z = (Math.random() - 0.5) * 20;
+
+            const scale = Math.random() * 0.7 + 0.5;
+            mesh.scale.set(scale, scale, scale);
+
+            mesh.userData = {
+                rotSpeedX: (Math.random() - 0.5) * 0.01,
+                rotSpeedY: (Math.random() - 0.5) * 0.01,
+                floatSpeed: Math.random() * 0.01 + 0.005,
+                originalY: mesh.position.y
+            };
+
+            group.add(mesh);
+            meshes.push(mesh);
+        }
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+        dirLight.position.set(20, 20, 20);
+        scene.add(dirLight);
+
+        let mouseX = 0, mouseY = 0;
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // مدیریت خاموش کردن انیمیشن هنگام سوئیچ کاربر به تب دیگر جهت مصرف بهینه انرژی
+        document.addEventListener('visibilitychange', () => {
+            appState.threeJsRunning = !document.hidden;
+        });
+
+        let clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            if (!appState.threeJsRunning) return;
+
+            const elapsed = clock.getElapsedTime();
+            meshes.forEach(m => {
+                m.rotation.x += m.userData.rotSpeedX;
+                m.rotation.y += m.userData.rotSpeedY;
+                m.position.y = m.userData.originalY + Math.sin(elapsed * 1.5 + m.position.x) * 0.8;
+            });
+
+            camera.position.x += (mouseX * 3 - camera.position.x) * 0.03;
+            camera.position.y += (mouseY * 3 - camera.position.y) * 0.03;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    }
+
+    window.onload = function() {
+        initThreeJsBackground();
+        fetchDocsFromCloud(false);
+        setupRealtimeListener();
+        
+        setInterval(() => {
+            fetchDocsFromCloud(false);
+        }, 60000);
+    };
+</script>
+</body>
+</html>
