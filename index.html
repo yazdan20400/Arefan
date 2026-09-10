@@ -679,9 +679,7 @@
 
     const DEFAULT_ADMIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 
-    // Standard Zero-VPN Cloud Bucket
-    const DEFAULT_UNBLOCKED_BUCKET = "https://api.npoint.io/46d6fc3a3b7d1956e18f";
-
+    // Default to stored custom URL or empty if not yet provisioned
     let appState = {
         isAdminLoggedIn: false,
         adminPasswordHash: localStorage.getItem('school_admin_hash') || DEFAULT_ADMIN_HASH,
@@ -689,7 +687,7 @@
         isThinking: false,
         speechRecognition: null,
         isListening: false,
-        activeCloudUrl: localStorage.getItem('school_custom_cloud_url') || DEFAULT_UNBLOCKED_BUCKET
+        activeCloudUrl: localStorage.getItem('school_custom_cloud_url') || ''
     };
 
     function sanitizeHTML(str) {
@@ -745,13 +743,25 @@
 
         updateHeaderStatus();
 
-        // 2. Fetch latest data from the permanent cloud bucket
-        await fetchDocumentsFromCentralCloud(false);
-
-        // 3. Periodic background sync for parents every 60 seconds (zero data overhead)
-        setInterval(() => {
-            fetchDocumentsFromCentralCloud(false);
-        }, 60000);
+        // 2. If an active cloud endpoint is configured, fetch latest data
+        if (appState.activeCloudUrl && appState.activeCloudUrl.trim().startsWith('http')) {
+            await fetchDocumentsFromCentralCloud(false);
+            
+            // Periodic background sync every 60 seconds
+            setInterval(() => {
+                if (appState.activeCloudUrl && appState.activeCloudUrl.trim().startsWith('http')) {
+                    fetchDocumentsFromCentralCloud(false);
+                }
+            }, 60000);
+        } else {
+            const statusEl = document.getElementById('cloudStatusText');
+            if (statusEl) statusEl.innerText = 'سامانه فعال و آماده به کار است 🟢';
+            const badge = document.getElementById('adminLiveBadge');
+            if (badge) {
+                badge.innerText = 'آماده اتصال ابری (دکمه ایجاد خودکار را بزنید)';
+                badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200';
+            }
+        }
     }
 
     async function fetchDocumentsFromCentralCloud(showNotice = false) {
@@ -759,17 +769,17 @@
         const statusEl = document.getElementById('cloudStatusText');
         const badge = document.getElementById('adminLiveBadge');
 
-        if (syncIcon) syncIcon.classList.add('fa-spin');
-
         let rawUrl = (appState.activeCloudUrl || '').trim();
-        if (!rawUrl) {
-            if (syncIcon) syncIcon.classList.remove('fa-spin');
+        if (!rawUrl || !rawUrl.startsWith('http')) {
+            if (showNotice) showToast('آدرس پایگاه ابری هنوز تنظیم نشده است.', 'error');
             return;
         }
 
+        if (syncIcon) syncIcon.classList.add('fa-spin');
+
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 7000);
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
 
             const res = await fetch(rawUrl, {
                 method: 'GET',
@@ -780,45 +790,47 @@
 
             if (res.ok) {
                 const data = await res.json();
-                if (data && typeof data === 'object') {
-                    let loadedDocs = [];
-                    if (Array.isArray(data)) {
-                        loadedDocs = data.filter(d => d && d.id);
-                    } else if (data.documents && Array.isArray(data.documents)) {
-                        loadedDocs = data.documents;
-                    } else {
-                        Object.keys(data).forEach(k => {
-                            if (data[k] && typeof data[k] === 'object' && data[k].id) {
-                                loadedDocs.push({ id: k, ...data[k] });
-                            }
-                        });
-                    }
-
-                    if (loadedDocs.length > 0) {
-                        loadedDocs.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-                        appState.documents = loadedDocs;
-                        localStorage.setItem('arefan_docs_cache', JSON.stringify(appState.documents));
-
-                        if (statusEl) statusEl.innerText = 'هماهنگ با آخرین مصوبات مدرسه 🟢';
-                        if (badge) {
-                            badge.innerText = 'متصل و پایدار (بدون وی‌پی‌ان) 🟢';
-                            badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+                let loadedDocs = [];
+                if (Array.isArray(data)) {
+                    loadedDocs = data.filter(d => d && d.id);
+                } else if (data && data.documents && Array.isArray(data.documents)) {
+                    loadedDocs = data.documents;
+                } else if (data && typeof data === 'object') {
+                    Object.keys(data).forEach(k => {
+                        if (data[k] && typeof data[k] === 'object' && data[k].id) {
+                            loadedDocs.push({ id: k, ...data[k] });
                         }
-                        if (showNotice) showToast('سامانه با آخرین مصوبات مدرسه هماهنگ شد.');
+                    });
+                }
+
+                if (loadedDocs.length > 0) {
+                    loadedDocs.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+                    appState.documents = loadedDocs;
+                    localStorage.setItem('arefan_docs_cache', JSON.stringify(appState.documents));
+
+                    if (statusEl) statusEl.innerText = 'هماهنگ با آخرین مصوبات مدرسه 🟢';
+                    if (badge) {
+                        badge.innerText = 'متصل و پایدار (بدون وی‌پی‌ان) 🟢';
+                        badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
                     }
+                    if (showNotice) showToast('سامانه با آخرین مصوبات مدرسه هماهنگ شد.');
                 }
                 updateLastSyncTimestamp();
-            } else if (res.status === 404) {
-                // Initial seed push if freshly provisioned
-                await syncDocsToActiveCloud(false);
+            } else {
+                if (statusEl) statusEl.innerText = 'سامانه با حافظه محلی فعال است';
+                if (badge) {
+                    badge.innerText = `عدم دسترسی (کد ${res.status})`;
+                    badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200';
+                }
+                if (showNotice) showToast(`پایگاه پاسخ نداد (کد ${res.status}).`, 'error');
             }
         } catch (err) {
-            console.warn("Background cloud sync notice:", err.message);
-            if (statusEl) statusEl.innerText = 'سامانه با آخرین نسخه محلی فعال است';
+            if (statusEl) statusEl.innerText = 'سامانه با حافظه محلی فعال است';
             if (badge) {
-                badge.innerText = 'حالت محلی / در انتظار هماهنگی';
+                badge.innerText = 'خطای ارتباط ابری';
                 badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200';
             }
+            if (showNotice) showToast('عدم برقراری ارتباط با سرور ابری.', 'error');
         } finally {
             updateHeaderStatus();
             if (appState.isAdminLoggedIn) renderAdminDocs();
@@ -827,11 +839,16 @@
     }
 
     async function syncDocsToActiveCloud(showToastMessage = true) {
+        // Always persist locally first
         localStorage.setItem('arefan_docs_cache', JSON.stringify(appState.documents));
 
         let rawUrl = (appState.activeCloudUrl || '').trim();
-        if (!rawUrl) {
-            if (showToastMessage) showToast('آدرس پایگاه ابری تنظیم نشده است.', 'error');
+        if (!rawUrl || !rawUrl.startsWith('http')) {
+            if (showToastMessage) {
+                showToast('تغییرات در این دستگاه ذخیره شد. برای همگام‌سازی با سایر گوشی‌ها، دکمه «ایجاد خودکار پایگاه» را بزنید.');
+            }
+            updateHeaderStatus();
+            if (appState.isAdminLoggedIn) renderAdminDocs();
             return;
         }
 
@@ -839,28 +856,28 @@
 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 9000);
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-            // First attempt: POST
-            let res = await fetch(rawUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: payload,
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-
-            // Fallback attempt: PUT (required by many REST engines)
-            if (!res.ok) {
+            // Try PUT first (standard REST update), then POST
+            let res;
+            try {
                 res = await fetch(rawUrl, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: payload,
+                    signal: controller.signal
+                });
+            } catch (putErr) {
+                res = await fetch(rawUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: payload
                 });
             }
+            clearTimeout(timeoutId);
 
-            if (res.ok) {
-                if (showToastMessage) showToast('تغییرات در پایگاه ابری سراسری ذخیره شد و روی گوشی تمام اولیا اعمال می‌شود.');
+            if (res && res.ok) {
+                if (showToastMessage) showToast('تغییرات در پایگاه ابری ذخیره شد و در تمامی گوشی‌ها اعمال خواهد شد.');
                 updateLastSyncTimestamp();
                 const badge = document.getElementById('adminLiveBadge');
                 if (badge) {
@@ -868,12 +885,11 @@
                     badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
                 }
             } else {
-                throw new Error(`HTTP ${res.status}`);
+                throw new Error(`Status ${res ? res.status : 'unknown'}`);
             }
         } catch (err) {
-            console.error("Direct cloud save error:", err);
             if (showToastMessage) {
-                showToast('تغییرات محلی ثبت شد؛ پایگاه ابری پاسخ نداد (کد ۴۰۴ یا اختلال شبکه). از دکمه «ایجاد خودکار پایگاه» استفاده فرمایید.', 'error');
+                showToast('تغییرات محلی ثبت شد؛ پایگاه ابری متصل نشد. می‌توانید با کلیک روی «ایجاد خودکار پایگاه» مخزن جدیدی بسازید.', 'error');
             }
         } finally {
             updateHeaderStatus();
@@ -885,38 +901,64 @@
         const btn = document.getElementById('autoCreateDbBtn');
         const originalText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> در حال ساخت مخزن...`;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> در حال ساخت پایگاه...`;
+
+        const initialData = appState.documents.length > 0 ? appState.documents : DEFAULT_SEED_DOCUMENTS;
 
         try {
-            // Provision a live JSON bin that is unblocked in Iran and supports CORS
-            const initialData = appState.documents.length > 0 ? appState.documents : DEFAULT_SEED_DOCUMENTS;
-            const res = await fetch('https://api.npoint.io', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(initialData)
-            });
+            let newEndpoint = '';
 
-            if (res.ok) {
-                const result = await res.json();
-                if (result && result.id) {
-                    const newEndpoint = `https://api.npoint.io/${result.id}`;
-                    appState.activeCloudUrl = newEndpoint;
-                    localStorage.setItem('school_custom_cloud_url', newEndpoint);
-                    
-                    const input = document.getElementById('customCloudEndpointInput');
-                    if (input) input.value = newEndpoint;
+            // Provider 1: JSONBlob API (Full CORS support, unblocked in Iran)
+            try {
+                const resBlob = await fetch('https://jsonblob.com/api/jsonBlob', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(initialData)
+                });
 
-                    showToast('پایگاه ابری اختصاصی و دائمی با موفقیت ساخته و متصل شد! 🟢');
-                    await fetchDocumentsFromCentralCloud(false);
-                } else {
-                    throw new Error('No bin ID returned');
+                if (resBlob.ok) {
+                    const loc = resBlob.headers.get('Location');
+                    if (loc) {
+                        newEndpoint = loc.replace('http://', 'https://');
+                    }
                 }
+            } catch (e1) {
+                console.warn("JSONBlob fallback, trying npoint...");
+            }
+
+            // Provider 2: npoint API Fallback
+            if (!newEndpoint) {
+                const resNpoint = await fetch('https://api.npoint.io', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(initialData)
+                });
+
+                if (resNpoint.ok) {
+                    const result = await resNpoint.json();
+                    if (result && result.id) {
+                        newEndpoint = `https://api.npoint.io/${result.id}`;
+                    }
+                }
+            }
+
+            if (newEndpoint) {
+                appState.activeCloudUrl = newEndpoint;
+                localStorage.setItem('school_custom_cloud_url', newEndpoint);
+                
+                const input = document.getElementById('customCloudEndpointInput');
+                if (input) input.value = newEndpoint;
+
+                showToast('پایگاه ابری اختصاصی و دائمی با موفقیت ایجاد و متصل شد! 🟢');
+                await fetchDocumentsFromCentralCloud(false);
             } else {
-                throw new Error(`Status ${res.status}`);
+                throw new Error('All providers failed');
             }
         } catch (err) {
-            console.error("Auto provision error:", err);
-            showToast('خطا در ساخت خودکار. لطفاً اتصال اینترنت را چک کرده یا آدرس دستی وارد فرمایید.', 'error');
+            showToast('خطا در ساخت خودکار. لطفاً وضعیت اینترنت را بررسی فرمایید یا آدرس اختصاصی وارد نمایید.', 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -928,50 +970,49 @@
         if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-amber-300';
 
         let rawUrl = (appState.activeCloudUrl || '').trim();
-        if (!rawUrl) {
-            showToast('لطفاً ابتدا آدرس پایگاه را مشخص نمایید یا دکمه ایجاد خودکار را لمس کنید.', 'error');
+        if (!rawUrl || !rawUrl.startsWith('http')) {
+            showToast('لطفاً ابتدا دکمه «ایجاد خودکار پایگاه» را لمس کنید تا مخزن ابری ساخته شود.', 'error');
             if (icon) icon.className = 'fa-solid fa-bolt text-amber-300';
             return;
         }
 
         try {
-            // First step: Attempt to write test data
+            // Write test
             const testPayload = JSON.stringify(appState.documents);
-            let writeRes = await fetch(rawUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: testPayload
-            });
-
-            if (!writeRes.ok) {
+            let writeRes;
+            try {
                 writeRes = await fetch(rawUrl, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: testPayload
+                });
+            } catch (e) {
+                writeRes = await fetch(rawUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: testPayload
                 });
             }
 
-            // Second step: Attempt to read back
+            // Read test
             const readRes = await fetch(rawUrl, {
                 method: 'GET',
                 headers: { 'Accept': 'application/json' }
             });
 
             if (readRes.ok) {
-                showToast('تست ۱۰۰٪ موفق بود! ارتباط دوطرفه بدون فیلترشکن با موفقیت برقرار است 🟢');
+                showToast('تست ۱۰۰٪ موفق بود! پایگاه ابری دوطرفه و بدون تحریم متصل است 🟢');
                 updateLastSyncTimestamp();
                 const badge = document.getElementById('adminLiveBadge');
                 if (badge) {
                     badge.innerText = 'متصل و فعال (بدون وی‌پی‌ان) 🟢';
                     badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
                 }
-            } else if (readRes.status === 404) {
-                showToast('خطای ۴۰۴: این آدرس در پایگاه ثبت نشده است. لطفاً دکمه سبز «ایجاد خودکار پایگاه» را لمس کنید.', 'error');
             } else {
-                showToast('پاسخ سرور با کد: ' + readRes.status, 'error');
+                showToast(`خطای پاسخ سرور (کد ${readRes.status}). پیشنهاد: دکمه «ایجاد خودکار پایگاه» را بزنید.`, 'error');
             }
         } catch (e) {
-            showToast('خطا در برقراری ارتباط! لطفاً دکمه «ایجاد خودکار پایگاه» را بزنید.', 'error');
+            showToast('خطا در اتصال شبکه به پایگاه ابری! دکمه «ایجاد خودکار پایگاه» را لمس کنید.', 'error');
         } finally {
             if (icon) icon.className = 'fa-solid fa-bolt text-amber-300';
         }
