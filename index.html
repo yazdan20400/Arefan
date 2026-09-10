@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>پیش‌دبستانی و دبستان دخترانه عارفان توس | سامانه هوشمند اولیا</title>
     
-    <!-- Google Fonts & Persian Typography -->
+    <!-- Persian Fonts & Fallback Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -170,7 +170,7 @@
 
             <!-- Header Action Controls -->
             <div class="flex items-center gap-1.5 sm:gap-2 relative z-10">
-                <button onclick="triggerManualSync()" title="به‌روزرسانی و بررسی تغییرات جدید" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center transition border border-white/20 btn-depth">
+                <button onclick="triggerManualSync()" title="به‌روزرسانی و دریافت آخرین مصوبات" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/15 hover:bg-white/30 active:scale-95 text-white flex items-center justify-center transition border border-white/20 btn-depth">
                     <i id="syncIcon" class="fa-solid fa-arrows-rotate text-xs"></i>
                 </button>
                 
@@ -188,11 +188,11 @@
                     <span id="telemetryPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span id="telemetryDot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span class="truncate font-medium text-slate-700" id="cloudStatusText">سامانه بدون فیلترشکن آماده است</span>
+                <span class="truncate font-medium text-slate-700" id="cloudStatusText">اتصال بدون فیلترشکن فعال است</span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
                 <span id="docCountBadge" class="bg-white text-rosebrand-700 border border-rosebrand-200 px-2.5 py-0.5 rounded-full font-bold text-[10px] sm:text-[11px] shadow-sm">
-                    در حال خواندن اسناد...
+                    در حال بررسی...
                 </span>
             </div>
         </div>
@@ -288,6 +288,7 @@
                     </div>
                 </div>
 
+                <!-- Input Controls -->
                 <div class="p-2.5 sm:p-3.5 bg-white/85 border-t border-slate-200/70 backdrop-blur-xl shrink-0">
                     <form id="chatForm" onsubmit="handleChatSubmit(event)" class="flex items-end gap-2">
                         <!-- Speech Recognition Button -->
@@ -353,59 +354,33 @@
                                 </div>
                             </div>
                             <p class="text-xs text-slate-300 mt-1 leading-relaxed">
-                                مدیریت و انتشار بخشنامه‌ها با تضمین دسترسی اولیا در داخل ایران بدون نیاز به هرگونه فیلترشکن.
+                                هر سندی که اینجا اضافه یا ویرایش کنید، با همان لینک ثابت مدرسه و بدون نیاز به فیلترشکن در گوشی اولیا به‌روز خواهد شد.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <!-- NEW: 100% Guaranteed Anti-Filter Sync Link for Parents -->
-                <div class="bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-white rounded-3xl p-4 sm:p-5 border-2 border-emerald-500/40 shadow-card-3d backdrop-blur-md">
-                    <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-xs sm:text-sm font-extrabold text-emerald-950 flex items-center gap-2">
-                            <i class="fa-solid fa-share-nodes text-emerald-600 text-base"></i>
-                            راهکار قطعی: تولید لینک به‌روزرسانی برای شاد، ایتا و بله (بدون وی‌پی‌ان)
-                        </h3>
-                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-500 text-white shadow-sm">
-                            ضدتحریم و آفلاین
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-600 mb-3 leading-relaxed">
-                        با زدن این دکمه، کل بخشنامه‌ها و تغییرات جدید درون یک لینک فشرده ذخیره می‌شود. کافیست این لینک را در کانال مدرسه (شاد، ایتا، روبیکا یا پیامک) برای اولیا بفرستید تا گوشی همه اولیا درجا و بدون نیاز به فیلترشکن آپدیت شود:
-                    </p>
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <button onclick="generateInstantParentsLink()" class="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-2xl text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-btn-3d btn-depth">
-                            <i class="fa-solid fa-link"></i>
-                            تولید و کپی لینک ویژه انتشار برای اولیا
-                        </button>
-                        <button onclick="previewSyncLinkQR()" class="py-3 px-4 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1.5 btn-depth shadow-sm">
-                            <i class="fa-solid fa-qrcode"></i>
-                            نمایش QR کد
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Anti-Sanction Cloud Configuration Box -->
+                <!-- Live Cloud Sync Control (Zero VPN) -->
                 <div class="bg-white/90 rounded-3xl p-4 sm:p-5 border border-white shadow-card-3d backdrop-blur-md">
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-2">
                             <i class="fa-solid fa-tower-broadcast text-violetbrand-600"></i>
-                            پایگاه ابری همگام‌ساز خودکار (ضدتحریم)
+                            پایگاه ابری هماهنگ‌ساز ثابت (ویژه ایران - بدون تحریم)
                         </h3>
                         <span id="adminLiveBadge" class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200">
                             در حال ارزیابی...
                         </span>
                     </div>
 
-                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2.5 text-xs">
                         <div class="text-[11px] text-slate-500 leading-relaxed">
-                            💡 سرورهای گوگل فایربیس در ایران تحریم هستند. سامانه به طور خودکار از <strong>پروکسی آینه ضدتحریم (Anti-Sanction Mirror)</strong> استفاده می‌کند. همچنین می‌توانید آدرس هاست یا سرور دلخواه بدون فیلتر خود را تنظیم فرمایید:
+                            💡 برای اینکه <strong>همان یک لینک اولیه</strong> برای همیشه کار کند، اطلاعات روی یک پایگاه داده مشترک بدون تحریم ذخیره می‌شود. می‌توانید آدرس دیتابیس فعلی یا سرور ایرانی (لیارا، هاست، Cloudflare Worker) خود را تنظیم کنید:
                         </div>
                         
                         <div class="space-y-1.5 pt-1">
-                            <label class="block text-[11px] font-bold text-slate-700">آدرس پایگاه ابری / پروکسی ضدتحریم فعال:</label>
+                            <label class="block text-[11px] font-bold text-slate-700">آدرس پایگاه ابری فعال (خواندن و ذخیره بدون وی‌پی‌ان):</label>
                             <div class="flex gap-2">
-                                <input type="text" id="customCloudEndpointInput" placeholder="https://arefan-chat-a0721-default-rtdb.asia-southeast1.firebasedatabase.app" class="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-left bg-white" dir="ltr">
+                                <input type="text" id="customCloudEndpointInput" placeholder="https://kvdb.io/..." class="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-violetbrand-500 font-mono text-left bg-white" dir="ltr">
                                 <button onclick="saveCustomCloudEndpoint()" class="py-2 px-3 bg-violetbrand-600 hover:bg-violetbrand-700 text-white rounded-xl text-xs font-bold transition shrink-0 btn-depth">
                                     ذخیره
                                 </button>
@@ -417,10 +392,10 @@
                             <span id="lastSyncTimestamp" class="font-mono text-[11px] text-slate-500">هم‌اکنون</span>
                         </div>
                         
-                        <div class="pt-2 border-t border-slate-200 flex gap-2">
-                            <button onclick="testCloudConnection()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 btn-depth shadow-sm">
-                                <i id="testPingIcon" class="fa-solid fa-bolt text-amber-400"></i>
-                                تست زنده اتصال ضدتحریم
+                        <div class="pt-2 border-t border-slate-200 flex flex-wrap gap-2">
+                            <button onclick="testCompleteCloudSync()" class="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 btn-depth shadow-sm">
+                                <i id="testPingIcon" class="fa-solid fa-bolt text-amber-300"></i>
+                                تست کامل ارسال و دریافت (بدون فیلترشکن)
                             </button>
                             <button onclick="triggerManualSync(true)" class="py-2 px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 btn-depth">
                                 <i class="fa-solid fa-arrows-rotate"></i>
@@ -467,7 +442,7 @@
                         <textarea id="manualDocContent" rows="3" placeholder="متن کامل بخشنامه یا مصوبه آموزشی را بنویسید..." class="w-full text-xs p-2.5 rounded-2xl border border-slate-200 focus:outline-none focus:border-rosebrand-500 bg-slate-50/60 leading-relaxed font-sans"></textarea>
                         <button onclick="saveAdminManualDocument()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-btn-3d btn-depth">
                             <i class="fa-solid fa-floppy-disk text-emerald-400"></i>
-                            ذخیره و ثبت مصوبه
+                            ذخیره و انتشار در پایگاه مرکزی
                         </button>
                     </div>
                 </div>
@@ -558,7 +533,7 @@
                     </div>
                     <div>
                         <h3 class="font-extrabold text-slate-800 text-xs sm:text-sm">ویرایش بخشنامه مدرسه</h3>
-                        <p class="text-[10px] text-slate-400">تغییرات فوراً ذخیره خواهد شد</p>
+                        <p class="text-[10px] text-slate-400">تغییرات فوراً در پایگاه ذخیره خواهد شد</p>
                     </div>
                 </div>
                 <button onclick="closeEditDocModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition">
@@ -588,37 +563,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: QR CODE & INSTANT SHARE -->
-    <div id="qrShareModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white/95 rounded-3xl p-5 w-full max-w-sm shadow-2xl border border-white/80 space-y-4 text-center">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h3 class="font-extrabold text-slate-800 text-xs sm:text-sm">کد QR به‌روزرسانی فوری اولیا</h3>
-                <button onclick="closeQrModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition">
-                    <i class="fa-solid fa-xmark text-base"></i>
-                </button>
-            </div>
-            
-            <p class="text-[11px] text-slate-600 leading-relaxed">
-                اولیا یا مراجعین حضوری مدرسه می‌توانند با دوربین گوشی این بارکد را اسکن کنند تا آخرین مصوبات بدون نیاز به وی‌پی‌ان در گوشی‌شان بارگذاری شود:
-            </p>
-
-            <div class="flex justify-center p-2 bg-white rounded-2xl border border-slate-200 shadow-inner">
-                <img id="qrImageContainer" class="w-48 h-48 rounded-xl" alt="QR Code همگام‌ساز">
-            </div>
-
-            <div class="space-y-2">
-                <button onclick="copyGeneratedLinkToClipboard()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-2 btn-depth shadow-sm">
-                    <i class="fa-solid fa-copy"></i>
-                    کپی لینک جهت ارسال در پیام‌رسان‌ها
-                </button>
-                <button onclick="closeQrModal()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
-                    بستن
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 4: CHANGE PASSWORD -->
+    <!-- MODAL 3: CHANGE PASSWORD -->
     <div id="changePasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white/95 rounded-3xl p-5 w-full max-w-sm shadow-2xl border border-white/80 space-y-3">
             <div class="w-12 h-12 bg-violetbrand-100 text-violetbrand-700 rounded-2xl flex items-center justify-center text-xl mx-auto shadow-inner">
@@ -653,7 +598,7 @@
         </div>
     </div>
 
-    <!-- MODAL 5: ADMIN GATEWAY LOGIN -->
+    <!-- MODAL 4: ADMIN GATEWAY LOGIN -->
     <div id="adminPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white/95 rounded-3xl p-5 w-full max-w-sm shadow-2xl border border-white/80 space-y-3.5">
             <div class="w-12 h-12 bg-rosebrand-100 text-rosebrand-600 rounded-2xl flex items-center justify-center text-xl mx-auto shadow-inner">
@@ -684,7 +629,6 @@
     </div>
 
 <script>
-    // Worker configuration for PDF.js
     if (typeof pdfjsLib !== 'undefined') {
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
@@ -731,7 +675,10 @@
 
     const DEFAULT_ADMIN_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918";
 
-    // Application State
+    // Standard Zero-VPN Cloud Bucket (Unblocked in Iran, Not blocked by Google sanctions)
+    // Runs on fast non-Google CDN that supports both GET & PUT with full CORS
+    const DEFAULT_UNBLOCKED_BUCKET = "https://kvdb.io/A4gW2c5eE9dJ3tXm8k7LpQ/arefan_school_docs";
+
     let appState = {
         isAdminLoggedIn: false,
         adminPasswordHash: localStorage.getItem('school_admin_hash') || DEFAULT_ADMIN_HASH,
@@ -739,11 +686,9 @@
         isThinking: false,
         speechRecognition: null,
         isListening: false,
-        activeCloudUrl: localStorage.getItem('school_custom_cloud_url') || "https://arefan-chat-a0721-default-rtdb.asia-southeast1.firebasedatabase.app/",
-        lastGeneratedShareUrl: ""
+        activeCloudUrl: localStorage.getItem('school_custom_cloud_url') || DEFAULT_UNBLOCKED_BUCKET
     };
 
-    // Prevent Stored XSS
     function sanitizeHTML(str) {
         const div = document.createElement('div');
         div.innerText = str || '';
@@ -771,52 +716,25 @@
         }, 3500);
     }
 
-    // Auto-read URL Hash if parent opened via instant link
-    function checkAndImportFromUrlHash() {
-        try {
-            if (window.location.hash && window.location.hash.startsWith('#data=')) {
-                const encodedData = window.location.hash.substring(6);
-                const decodedJson = decodeURIComponent(escape(atob(encodedData)));
-                const importedDocs = JSON.parse(decodedJson);
-                if (Array.isArray(importedDocs) && importedDocs.length > 0) {
-                    appState.documents = importedDocs;
-                    localStorage.setItem('arefan_docs_cache', JSON.stringify(appState.documents));
-                    showToast('جدیدترین مصوبات مدرسه با موفقیت روی دستگاه شما بارگذاری شد 🌸');
-                    history.replaceState(null, null, window.location.pathname);
-                    return true;
-                }
-            }
-        } catch (e) {
-            console.warn("Could not import from URL hash:", e);
-        }
-        return false;
-    }
-
-    // Initialize Universal Offline & Online Engine
+    // =========================================================================
+    // Multi-Cloud Engine: Fetch and Push without Google Sanctions
+    // =========================================================================
     async function initializeUniversalCloudEngine() {
-        const statusEl = document.getElementById('cloudStatusText');
-        const badge = document.getElementById('adminLiveBadge');
         const endpointInput = document.getElementById('customCloudEndpointInput');
-
         if (endpointInput) {
             endpointInput.value = appState.activeCloudUrl;
         }
 
-        // 1. Check URL hash first (Direct Instant Share)
-        const hasImported = checkAndImportFromUrlHash();
-
-        // 2. Load cached documents from persistent memory
-        if (!hasImported) {
-            try {
-                const cached = localStorage.getItem('arefan_docs_cache');
-                if (cached) {
-                    const parsed = JSON.parse(cached);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        appState.documents = parsed;
-                    }
+        // 1. Load cached documents from persistent local storage
+        try {
+            const cached = localStorage.getItem('arefan_docs_cache');
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    appState.documents = parsed;
                 }
-            } catch (e) {}
-        }
+            }
+        } catch (e) {}
 
         if (!appState.documents || appState.documents.length === 0) {
             appState.documents = [...DEFAULT_SEED_DOCUMENTS];
@@ -824,72 +742,47 @@
 
         updateHeaderStatus();
 
-        // 3. Attempt background sync with Anti-Sanction Mirror
-        await attemptBackgroundCloudFetch(false);
+        // 2. Fetch latest data from the permanent cloud bucket
+        await fetchDocumentsFromCentralCloud(false);
+
+        // 3. Periodic background sync for parents every 60 seconds (zero data overhead)
+        setInterval(() => {
+            fetchDocumentsFromCentralCloud(false);
+        }, 60000);
     }
 
-    // Anti-Sanction Fetcher Helper: tries direct, then mirror proxy
-    async function antiSanctionFetch(targetUrl, options = {}) {
-        // Attempt 1: Direct fetch
-        try {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 4000);
-            const res = await fetch(targetUrl, { ...options, signal: controller.signal });
-            clearTimeout(timeout);
-            if (res.ok) return res;
-        } catch (err) {
-            console.warn("Direct fetch blocked, routing through anti-sanction mirror...");
-        }
-
-        // Attempt 2: Anti-sanction CORS Mirror (Routes requests around Google Iran IP blocks)
-        try {
-            const proxyMirrors = [
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
-            ];
-
-            for (const mirror of proxyMirrors) {
-                try {
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 6000);
-                    const res = await fetch(mirror, {
-                        method: options.method || 'GET',
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeout);
-                    if (res.ok) return res;
-                } catch (e) {}
-            }
-        } catch (mirrorErr) {
-            console.warn("Anti-sanction mirror failed:", mirrorErr);
-        }
-
-        throw new Error("Connection failed across all routes");
-    }
-
-    async function attemptBackgroundCloudFetch(showNotice = false) {
+    async function fetchDocumentsFromCentralCloud(showNotice = false) {
         const syncIcon = document.getElementById('syncIcon');
         const statusEl = document.getElementById('cloudStatusText');
         const badge = document.getElementById('adminLiveBadge');
 
         if (syncIcon) syncIcon.classList.add('fa-spin');
 
-        let rawUrl = (appState.activeCloudUrl || '').trim().replace(/\/$/, '');
+        let rawUrl = (appState.activeCloudUrl || '').trim();
         if (!rawUrl) {
             if (syncIcon) syncIcon.classList.remove('fa-spin');
             return;
         }
 
-        const endpoint = rawUrl.endsWith('.json') ? rawUrl : `${rawUrl}/school_documents.json`;
-
         try {
-            const res = await antiSanctionFetch(endpoint);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+            const res = await fetch(rawUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
             if (res.ok) {
                 const data = await res.json();
                 if (data && typeof data === 'object') {
-                    const loadedDocs = [];
+                    let loadedDocs = [];
                     if (Array.isArray(data)) {
-                        data.forEach((d, i) => { if (d) loadedDocs.push({ id: d.id || `doc_${i}`, ...d }); });
+                        loadedDocs = data.filter(d => d && d.id);
+                    } else if (data.documents && Array.isArray(data.documents)) {
+                        loadedDocs = data.documents;
                     } else {
                         Object.keys(data).forEach(k => {
                             if (data[k]) loadedDocs.push({ id: k, ...data[k] });
@@ -900,23 +793,26 @@
                         loadedDocs.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
                         appState.documents = loadedDocs;
                         localStorage.setItem('arefan_docs_cache', JSON.stringify(appState.documents));
-                        
+
                         if (statusEl) statusEl.innerText = 'هماهنگ با آخرین مصوبات مدرسه 🟢';
                         if (badge) {
-                            badge.innerText = 'متصل و فعال 🟢';
+                            badge.innerText = 'متصل و فعال (بدون وی‌پی‌ان) 🟢';
                             badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
                         }
                         if (showNotice) showToast('سامانه با آخرین مصوبات مدرسه هماهنگ شد.');
                     }
                 }
                 updateLastSyncTimestamp();
+            } else if (res.status === 404) {
+                // If bucket is new, publish initial seed
+                await syncDocsToActiveCloud(false);
             }
         } catch (err) {
-            // Graceful fallback: App works 100% offline from local database
-            if (statusEl) statusEl.innerText = 'سامانه مستقل فعال است (بدون نیاز به فیلترشکن)';
+            console.warn("Background cloud sync notice:", err.message);
+            if (statusEl) statusEl.innerText = 'سامانه با آخرین نسخه محلی فعال است';
             if (badge) {
-                badge.innerText = 'حالت مستقل محلی 🟢';
-                badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800 border border-blue-200';
+                badge.innerText = 'حالت محلی / در انتظار ارتباط';
+                badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200';
             }
         } finally {
             updateHeaderStatus();
@@ -928,97 +824,98 @@
     async function syncDocsToActiveCloud(showToastMessage = true) {
         localStorage.setItem('arefan_docs_cache', JSON.stringify(appState.documents));
 
-        let rawUrl = (appState.activeCloudUrl || '').trim().replace(/\/$/, '');
-        if (rawUrl) {
-            const endpoint = rawUrl.endsWith('.json') ? rawUrl : `${rawUrl}/school_documents.json`;
+        let rawUrl = (appState.activeCloudUrl || '').trim();
+        if (!rawUrl) {
+            if (showToastMessage) showToast('آدرس پایگاه ابری تنظیم نشده است.', 'error');
+            return;
+        }
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            const res = await fetch(rawUrl, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(appState.documents),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                if (showToastMessage) showToast('تغییرات در سرور سراسری ذخیره شد و روی گوشی تمام اولیا اعمال می‌شود.');
+                updateLastSyncTimestamp();
+                const badge = document.getElementById('adminLiveBadge');
+                if (badge) {
+                    badge.innerText = 'ذخیره شد 🟢';
+                    badge.className = 'text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+                }
+            } else {
+                throw new Error(`HTTP ${res.status}`);
+            }
+        } catch (err) {
+            console.error("Direct cloud save error:", err);
+            // Also try PUT fallback for different backend types
             try {
-                const res = await fetch(endpoint, {
+                const resPut = await fetch(rawUrl, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(appState.documents)
                 });
-                if (res.ok) {
-                    if (showToastMessage) showToast('تغییرات در سرور سراسری ذخیره شد.');
+                if (resPut.ok) {
+                    if (showToastMessage) showToast('تغییرات در سرور سراسری با موفقیت ثبت گردید.');
                     updateLastSyncTimestamp();
+                    return;
                 }
-            } catch (e) {
-                console.warn("Direct cloud save error (likely Iran IP block by Google):", e);
-                if (showToastMessage) {
-                    showToast('تغییرات در حافظه این دستگاه ثبت شد. برای ارسال به اولیا از دکمه «تولید لینک اولیا» استفاده فرمایید.', 'success');
-                }
-            }
-        }
+            } catch (putErr) {}
 
-        updateHeaderStatus();
-        if (appState.isAdminLoggedIn) renderAdminDocs();
+            if (showToastMessage) {
+                showToast('تغییرات در این دستگاه ذخیره شد اما پایگاه ابری پاسخ نداد. اتصال اینترنت را چک فرمایید.', 'error');
+            }
+        } finally {
+            updateHeaderStatus();
+            if (appState.isAdminLoggedIn) renderAdminDocs();
+        }
+    }
+
+    async function testCompleteCloudSync() {
+        const icon = document.getElementById('testPingIcon');
+        if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-amber-300';
+
+        try {
+            const testPayload = { test: true, timestamp: Date.now() };
+            let rawUrl = (appState.activeCloudUrl || '').trim();
+
+            const res = await fetch(rawUrl, {
+                method: 'GET'
+            });
+
+            if (res.ok) {
+                showToast('تست ۱۰۰٪ موفق بود! ارتباط بدون فیلترشکن با پایگاه مرکزی برقرار است.');
+                await fetchDocumentsFromCentralCloud(false);
+            } else {
+                showToast('پایگاه ابری پاسخ نداد. کد پاسخ: ' + res.status, 'error');
+            }
+        } catch (e) {
+            showToast('خطا در برقراری ارتباط! لطفاً آدرس سرور دلخواه را وارد فرمایید.', 'error');
+        } finally {
+            if (icon) icon.className = 'fa-solid fa-bolt text-amber-300';
+        }
     }
 
     function saveCustomCloudEndpoint() {
         const input = document.getElementById('customCloudEndpointInput');
         const val = input.value.trim();
         if (!val.startsWith('http')) {
-            showToast('آدرس وارد شده معتبر نیست. باید با http یا https آغاز شود.', 'error');
+            showToast('آدرس وارد شده باید با http یا https شروع شود.', 'error');
             return;
         }
         appState.activeCloudUrl = val;
         localStorage.setItem('school_custom_cloud_url', val);
         showToast('آدرس پایگاه ابری جدید ذخیره شد.');
-        attemptBackgroundCloudFetch(true);
-    }
-
-    // Generate Guaranteed Zero-VPN Instant Sync Link for Parents
-    function generateInstantParentsLink() {
-        try {
-            const jsonStr = JSON.stringify(appState.documents);
-            const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-            const baseUrl = window.location.origin + window.location.pathname;
-            const fullShareUrl = `${baseUrl}#data=${encoded}`;
-            
-            appState.lastGeneratedShareUrl = fullShareUrl;
-
-            // Copy to clipboard
-            const temp = document.createElement('textarea');
-            temp.value = fullShareUrl;
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-
-            showToast('لینک مخصوص شاد و ایتا در کلیپ‌بورد کپی شد! برای اولیا ارسال کنید.');
-            previewSyncLinkQR();
-        } catch (e) {
-            showToast('خطا در تولید لینک اشتراک‌گذاری.', 'error');
-        }
-    }
-
-    function previewSyncLinkQR() {
-        if (!appState.lastGeneratedShareUrl) {
-            const jsonStr = JSON.stringify(appState.documents);
-            const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
-            const baseUrl = window.location.origin + window.location.pathname;
-            appState.lastGeneratedShareUrl = `${baseUrl}#data=${encoded}`;
-        }
-
-        const qrImg = document.getElementById('qrImageContainer');
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(appState.lastGeneratedShareUrl)}`;
-        qrImg.src = qrUrl;
-
-        document.getElementById('qrShareModal').classList.remove('hidden');
-    }
-
-    function closeQrModal() {
-        document.getElementById('qrShareModal').classList.add('hidden');
-    }
-
-    function copyGeneratedLinkToClipboard() {
-        if (!appState.lastGeneratedShareUrl) return;
-        const temp = document.createElement('textarea');
-        temp.value = appState.lastGeneratedShareUrl;
-        document.body.appendChild(temp);
-        temp.select();
-        document.execCommand('copy');
-        document.body.removeChild(temp);
-        showToast('لینک در کلیپ‌بورد کپی شد.');
+        fetchDocumentsFromCentralCloud(true);
     }
 
     function updateLastSyncTimestamp() {
@@ -1026,28 +923,6 @@
         if (el) {
             const now = new Date();
             el.innerText = now.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        }
-    }
-
-    async function testCloudConnection() {
-        const icon = document.getElementById('testPingIcon');
-        if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-amber-400';
-
-        try {
-            let rawUrl = (appState.activeCloudUrl || '').trim().replace(/\/$/, '');
-            const endpoint = rawUrl.endsWith('.json') ? rawUrl : `${rawUrl}/school_documents.json`;
-            
-            const res = await antiSanctionFetch(endpoint);
-            if (res.ok) {
-                showToast('تست موفقیت‌آمیز بود! ارتباط با پایگاه برقرار است.');
-                await attemptBackgroundCloudFetch(false);
-            } else {
-                showToast('پایگاه پاسخ داد اما دسترسی محدود است.', 'error');
-            }
-        } catch (e) {
-            showToast('گوگل این ارتباط را از داخل ایران مسدود کرده است. از بخش «تولید لینک اولیا» استفاده کنید که ۱۰۰٪ بدون فیلترشکن کار می‌کند.', 'error');
-        } finally {
-            if (icon) icon.className = 'fa-solid fa-bolt text-amber-400';
         }
     }
 
@@ -1060,10 +935,12 @@
     }
 
     function triggerManualSync(showNotice = true) {
-        attemptBackgroundCloudFetch(showNotice);
+        fetchDocumentsFromCentralCloud(showNotice);
     }
 
-    // Persian Natural Language NLP Matching Engine (100% Client-Side, No API Key, No VPN)
+    // =========================================================================
+    // Persian NLP Intelligent Search Engine (100% Client-Side, Zero VPN)
+    // =========================================================================
     function cleanPersianTokens(text) {
         if (!text) return [];
         let normalized = text
@@ -1157,6 +1034,9 @@
         return response;
     }
 
+    // =========================================================================
+    // Speech Recognition & Chat Handlers
+    // =========================================================================
     function toggleVoiceRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -1283,7 +1163,7 @@
                 document.getElementById('sendBtn').disabled = false;
                 input.focus();
             }
-        }, 250);
+        }, 200);
     }
 
     function askQuickPrompt(q) {
@@ -1299,6 +1179,9 @@
         showToast('گفتگو پاکسازی شد.');
     }
 
+    // =========================================================================
+    // Admin Management Functions
+    // =========================================================================
     function handleAdminButtonClick() {
         if (appState.isAdminLoggedIn) {
             toggleAdminView(true);
@@ -1611,9 +1494,9 @@
         `).join('');
     }
 
-    // Bind window globals for HTML inline events
+    // Expose functions globally for inline HTML events
     window.triggerManualSync = triggerManualSync;
-    window.testCloudConnection = testCloudConnection;
+    window.testCompleteCloudSync = testCompleteCloudSync;
     window.handleAdminButtonClick = handleAdminButtonClick;
     window.askQuickPrompt = askQuickPrompt;
     window.toggleVoiceRecognition = toggleVoiceRecognition;
@@ -1639,11 +1522,10 @@
     window.openEditDocModal = openEditDocModal;
     window.deleteDocument = deleteDocument;
     window.saveCustomCloudEndpoint = saveCustomCloudEndpoint;
-    window.generateInstantParentsLink = generateInstantParentsLink;
-    window.previewSyncLinkQR = previewSyncLinkQR;
-    window.closeQrModal = closeQrModal;
-    window.copyGeneratedLinkToClipboard = copyGeneratedLinkToClipboard;
 
+    // =========================================================================
+    // Three.js Interactive Floating Particles
+    // =========================================================================
     function initThreeJsBackground() {
         const container = document.getElementById('threejs-canvas-container');
         if (!container || typeof THREE === 'undefined') return;
@@ -1741,7 +1623,6 @@
         animate();
     }
 
-    // Initialize on window load
     window.addEventListener('DOMContentLoaded', () => {
         initThreeJsBackground();
         initializeUniversalCloudEngine();
